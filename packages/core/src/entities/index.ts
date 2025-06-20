@@ -1,0 +1,2 @@
+// Entity exports (placeholder)
+export {};

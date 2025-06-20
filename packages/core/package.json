@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@code-pilot/types": "workspace:^",
+    "@tauri-apps/api": "^2",
     "@types/uuid": "^10.0.0",
     "uuid": "^11.1.0"
   },

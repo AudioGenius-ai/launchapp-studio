@@ -76,16 +76,17 @@ export class ProjectService {
       throw new Error(`Project not found: ${id}`);
     }
 
+    const { settings, ...restDto } = dto;
     const updatedData: Partial<Project> = {
-      ...dto,
+      ...restDto,
       updatedAt: new Date()
     };
 
-    if (dto.settings) {
+    if (settings) {
       updatedData.settings = {
         ...existing.settings,
-        ...dto.settings
-      };
+        ...settings
+      } as ProjectSettings;
     }
 
     const updatedProject = await this.repository.update(id, updatedData);

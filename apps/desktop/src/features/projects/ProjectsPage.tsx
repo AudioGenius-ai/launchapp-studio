@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { invoke } from '@tauri-apps/api/core';
-import { open } from '@tauri-apps/plugin-opener';
+import { open } from '@tauri-apps/plugin-dialog';
 import { ProjectList, CreateProjectDialog } from '@code-pilot/ui';
 import { Project, CreateProjectDto, ProjectListResponse } from '@code-pilot/types';
 
-export const ProjectsPage: React.FC = () => {
+export const ProjectsPage = () => {
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchValue, setSearchValue] = useState('');

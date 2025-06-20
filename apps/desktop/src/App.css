@@ -1,7 +1,5 @@
-/* Import Tailwind CSS */
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+/* Import Tailwind CSS v4 */
+@import "tailwindcss";
 
 /* Global styles */
 * {
@@ -22,15 +20,28 @@ html, body, #root {
 }
 
 ::-webkit-scrollbar-track {
-  @apply bg-gray-100 dark:bg-gray-800;
+  background-color: #f3f4f6;
+}
+
+@media (prefers-color-scheme: dark) {
+  ::-webkit-scrollbar-track {
+    background-color: #1f2937;
+  }
 }
 
 ::-webkit-scrollbar-thumb {
-  @apply bg-gray-400 dark:bg-gray-600 rounded;
+  background-color: #9ca3af;
+  border-radius: 4px;
+}
+
+@media (prefers-color-scheme: dark) {
+  ::-webkit-scrollbar-thumb {
+    background-color: #4b5563;
+  }
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  @apply bg-gray-500 dark:bg-gray-500;
+  background-color: #6b7280;
 }
 
 /* Animations */

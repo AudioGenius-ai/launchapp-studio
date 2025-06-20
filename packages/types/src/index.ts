@@ -61,3 +61,6 @@ export interface TauriCommand<T = any, R = any> {
 
 // Export project types
 export * from './project';
+
+// Export filesystem types
+export * from './filesystem';

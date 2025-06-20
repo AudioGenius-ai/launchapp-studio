@@ -1,0 +1,2 @@
+// Interface exports (placeholder)
+export {};
