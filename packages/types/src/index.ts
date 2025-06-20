@@ -64,3 +64,6 @@ export * from './project';
 
 // Export filesystem types
 export * from './filesystem';
+
+// Export editor types
+export * from './editor';

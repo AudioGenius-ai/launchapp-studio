@@ -6,6 +6,7 @@ use tauri::{AppHandle, Manager};
 use std::sync::{Arc, Mutex};
 use std::collections::HashMap;
 use chrono::{DateTime, Utc};
+use std::env;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct FileSystemNode {
@@ -469,4 +470,31 @@ pub async fn unwatch_directory(path: String) -> Result<(), String> {
     let mut watchers = WATCHERS.lock().unwrap();
     watchers.remove(&path);
     Ok(())
+}
+
+#[tauri::command]
+pub async fn get_home_dir() -> Result<String, String> {
+    match env::var("HOME").or_else(|_| env::var("USERPROFILE")) {
+        Ok(home) => Ok(home),
+        Err(_) => {
+            // Fallback to platform-specific methods
+            #[cfg(target_os = "windows")]
+            {
+                match env::var("HOMEPATH") {
+                    Ok(path) => {
+                        let drive = env::var("HOMEDRIVE").unwrap_or_else(|_| "C:".to_string());
+                        Ok(format!("{}{}", drive, path))
+                    }
+                    Err(_) => Err("Could not determine home directory".to_string())
+                }
+            }
+            #[cfg(not(target_os = "windows"))]
+            {
+                match env::var("USER") {
+                    Ok(user) => Ok(format!("/home/{}", user)),
+                    Err(_) => Err("Could not determine home directory".to_string())
+                }
+            }
+        }
+    }
 }
