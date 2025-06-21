@@ -5,6 +5,7 @@ A next-generation AI-powered IDE built with Tauri, React, and TypeScript. Curren
 ## Current Project Status
 
 ### 🎆 Phase 1: Foundation (Completed)
+
 - ✓ Monorepo setup with pnpm workspaces and Turborepo
 - ✓ Tauri desktop application with hot reload
 - ✓ Core package architecture (core, ui, types, utils)
@@ -12,6 +13,7 @@ A next-generation AI-powered IDE built with Tauri, React, and TypeScript. Curren
 - ✓ Build pipeline with Vite
 
 ### 🚀 Phase 2: Core Features (Completed)
+
 - ✓ Project management system with CRUD operations
 - ✓ File explorer with tree view and operations
 - ✓ Monaco editor integration with tabs
@@ -21,6 +23,7 @@ A next-generation AI-powered IDE built with Tauri, React, and TypeScript. Curren
 - ✓ Type-safe IPC communication
 
 ### 🔮 Phase 3: AI Integration (Upcoming)
+
 - ☐ AI provider abstraction layer
 - ☐ Claude API integration
 - ☐ Streaming chat interface
@@ -28,6 +31,7 @@ A next-generation AI-powered IDE built with Tauri, React, and TypeScript. Curren
 - ☐ Tool calling implementation
 
 ### 🛠️ Phase 4: Advanced Features (Planned)
+
 - ☐ Session persistence with SQLite
 - ☐ Git integration
 - ☐ Terminal integration
@@ -95,9 +99,206 @@ graph TB
     style I fill:#7B1FA2,stroke:#4A148C,color:#fff
 ```
 
+## Key Operation Flows
+
+### Application Startup Flow
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant Main
+    participant Tauri
+    participant Frontend
+    participant Backend
+    participant DB
+    participant FileSystem
+
+    User->>Main: Launch Application
+    Main->>Tauri: Initialize Tauri Runtime
+    Tauri->>Backend: Setup Rust Backend
+    Backend->>DB: Initialize Database
+    Backend->>FileSystem: Check Permissions
+    Backend-->>Tauri: Backend Ready
+    
+    Tauri->>Frontend: Load Frontend Assets
+    Frontend->>Frontend: Initialize React App
+    Frontend->>Frontend: Setup Router
+    Frontend->>Frontend: Load UI Components
+    Frontend-->>Tauri: Frontend Ready
+    
+    Tauri-->>User: Show Application Window
+    Frontend->>Backend: Load Initial Data
+    Backend->>DB: Query Projects
+    DB-->>Backend: Return Projects
+    Backend-->>Frontend: Projects Data
+    Frontend-->>User: Display UI
+```
+
+### Project Creation Flow
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant UI
+    participant ProjectService
+    participant IPC
+    participant Backend
+    participant FileSystem
+    participant DB
+
+    User->>UI: Click "New Project"
+    UI->>UI: Open Create Dialog
+    User->>UI: Enter Project Details
+    UI->>UI: Validate Input
+    UI->>ProjectService: createProject(dto)
+    ProjectService->>IPC: invoke('create_project')
+    IPC->>Backend: Handle Command
+    Backend->>FileSystem: Validate Path
+    FileSystem-->>Backend: Path Valid
+    Backend->>Backend: Generate UUID
+    Backend->>DB: Save Project
+    DB-->>Backend: Project Saved
+    Backend-->>IPC: Return Project
+    IPC-->>ProjectService: Project Data
+    ProjectService-->>UI: Update State
+    UI-->>User: Show Success
+```
+
+### File Edit and Save Flow
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant Editor
+    participant TabManager
+    participant FileService
+    participant IPC
+    participant Backend
+    participant FS
+
+    User->>Editor: Type Changes
+    Editor->>Editor: Update Buffer
+    Editor->>TabManager: Mark Tab Dirty
+    User->>Editor: Press Ctrl+S
+    Editor->>FileService: saveFile(path, content)
+    FileService->>IPC: invoke('write_file')
+    IPC->>Backend: write_file Command
+    Backend->>FS: Write to Disk
+    FS-->>Backend: Write Success
+    Backend->>Backend: Emit File Event
+    Backend-->>IPC: Success Response
+    IPC-->>FileService: Save Complete
+    FileService-->>Editor: Update Status
+    Editor->>TabManager: Mark Tab Clean
+    TabManager-->>User: Show Saved
+```
+
+### Theme System Flow
+
+```mermaid
+graph LR
+    subgraph "Theme Sources"
+        System[System Preference]
+        User[User Preference]
+        Default[Default Theme]
+    end
+
+    subgraph "Theme Provider"
+        Provider[ThemeProvider]
+        Context[Theme Context]
+        State[Theme State]
+    end
+
+    subgraph "Storage"
+        Local[LocalStorage]
+        Settings[Settings File]
+    end
+
+    subgraph "Application"
+        Components[UI Components]
+        CSS[CSS Variables]
+        Tailwind[Tailwind Classes]
+    end
+
+    System --> Provider
+    User --> Provider
+    Default --> Provider
+    
+    Provider --> Context
+    Context --> State
+    State --> Local
+    State --> Settings
+    
+    Context --> Components
+    Context --> CSS
+    Context --> Tailwind
+    
+    style Provider fill:#4CAF50
+    style Context fill:#2196F3
+    style Components fill:#FF9800
+```
+
+### Plugin Loading Flow
+
+```mermaid
+sequenceDiagram
+    participant App
+    participant PluginManager
+    participant FileSystem
+    participant Sandbox
+    participant Plugin
+    participant API
+
+    App->>PluginManager: Initialize Plugins
+    PluginManager->>FileSystem: Scan Plugin Directory
+    FileSystem-->>PluginManager: Plugin List
+    
+    loop For Each Plugin
+        PluginManager->>FileSystem: Read Manifest
+        FileSystem-->>PluginManager: Plugin Metadata
+        PluginManager->>PluginManager: Validate Manifest
+        PluginManager->>Sandbox: Create Sandbox
+        Sandbox->>Plugin: Load Plugin Code
+        Plugin->>API: Request Permissions
+        API-->>Plugin: Grant/Deny
+        Plugin->>Plugin: Initialize
+        Plugin-->>PluginManager: Ready
+    end
+    
+    PluginManager-->>App: Plugins Loaded
+    App->>App: Enable Plugin Features
+```
+
+### Error Recovery Flow
+
+```mermaid
+stateDiagram-v2
+    [*] --> Normal
+    Normal --> Error: Exception Occurs
+    
+    Error --> Identify: Identify Error Type
+    
+    Identify --> Recoverable: Can Recover
+    Identify --> Fatal: Cannot Recover
+    
+    Recoverable --> Retry: Retry Operation
+    Retry --> Normal: Success
+    Retry --> Fallback: Max Retries
+    
+    Fallback --> Degraded: Degraded Mode
+    Degraded --> Normal: User Action
+    
+    Fatal --> Log: Log Error
+    Log --> Notify: Notify User
+    Notify --> Restart: Restart Required
+    Restart --> [*]
+    
+    Degraded --> Log: Log Warning
+```
+
 ### Project Structure
 
-```
+```text
 ├── apps/
 │   └── desktop/          # Tauri desktop application
 ├── packages/
@@ -121,6 +322,7 @@ graph TB
 ### Getting Started
 
 1. **Clone and install**:
+
 ```bash
 git clone <repository-url>
 cd code-pilot-studio-v2
@@ -128,6 +330,7 @@ pnpm install
 ```
 
 2. **Start development mode**:
+
 ```bash
 # Terminal 1: Start package watchers
 pnpm dev
@@ -138,6 +341,7 @@ pnpm tauri:dev
 ```
 
 3. **Build for production**:
+
 ```bash
 # Build all packages
 pnpm build
@@ -181,6 +385,7 @@ pnpm update --recursive
 ## Available Scripts
 
 ### Root Scripts
+
 - `pnpm dev` - Start all packages in development mode
 - `pnpm build` - Build all packages in dependency order
 - `pnpm test` - Run tests across all packages
@@ -189,6 +394,7 @@ pnpm update --recursive
 - `pnpm clean` - Clean all build artifacts
 
 ### Desktop App Scripts
+
 - `pnpm tauri:dev` - Run desktop app in development
 - `pnpm tauri:build` - Build desktop app for production
 - `pnpm tauri:test` - Run desktop app tests

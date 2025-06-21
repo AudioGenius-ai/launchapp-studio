@@ -124,6 +124,113 @@ cd apps/mobile && pnpm dev
 3. **Platform-Specific**: Each app can have platform-specific features
 4. **Progressive Enhancement**: Start with desktop, expand to web/mobile
 
+## Package Build Flow
+
+This diagram shows how applications are built in the monorepo, including dependency resolution and bundling.
+
+```mermaid
+graph TD
+    subgraph "Build Orchestration"
+        Turbo[Turbo Build]
+        Cache[Build Cache]
+        Order[Dependency Order]
+    end
+    
+    subgraph "Package Build"
+        Utils[@code-pilot/utils<br/>Build First]
+        Types[@code-pilot/types<br/>Depends on Utils]
+        Core[@code-pilot/core<br/>Depends on Types & Utils]
+        UI[@code-pilot/ui<br/>Depends on All]
+    end
+    
+    subgraph "App Build"
+        Desktop[Desktop App<br/>Vite + Tauri]
+        Web[Web App<br/>Vite/Next.js]
+        Mobile[Mobile App<br/>React Native]
+    end
+    
+    subgraph "Build Steps"
+        Clean[Clean Output]
+        TSC[TypeScript Compile]
+        Bundle[Bundle Assets]
+        Optimize[Optimize]
+        Package[Package App]
+    end
+    
+    Turbo --> Cache
+    Cache -->|Check| Order
+    Order --> Utils
+    
+    Utils -->|Success| Types
+    Types -->|Success| Core
+    Core -->|Success| UI
+    
+    UI -->|All Built| Desktop
+    UI -->|All Built| Web
+    UI -->|All Built| Mobile
+    
+    Desktop --> Clean
+    Web --> Clean
+    Mobile --> Clean
+    
+    Clean --> TSC
+    TSC --> Bundle
+    Bundle --> Optimize
+    Optimize --> Package
+    
+    Package -->|Desktop| Tauri[Tauri Bundle<br/>.app/.exe/.deb]
+    Package -->|Web| Static[Static Files<br/>dist/]
+    Package -->|Mobile| APK[APK/IPA<br/>Binary]
+    
+    style Turbo fill:#ff6b6b,stroke:#ff4444
+    style Utils fill:#4ecdc4,stroke:#3ba99c
+    style Types fill:#45b7d1,stroke:#3498db
+    style Core fill:#96ceb4,stroke:#6fa67c
+    style UI fill:#feca57,stroke:#f39c12
+```
+
+## Dependency Resolution Flow
+
+This diagram illustrates how dependencies are resolved between apps and packages in the workspace.
+
+```mermaid
+sequenceDiagram
+    participant App as Application
+    participant Resolver as pnpm Resolver
+    participant Workspace as Workspace Packages
+    participant External as npm Registry
+    participant Bundle as Bundler (Vite)
+    
+    App->>Resolver: Import @code-pilot/ui
+    Resolver->>Workspace: Check workspace
+    
+    alt Found in workspace
+        Workspace-->>Resolver: Return symlink
+        Resolver-->>App: Local package ready
+    else Not in workspace
+        Resolver->>External: Fetch from npm
+        External-->>Resolver: Download package
+        Resolver-->>App: External package ready
+    end
+    
+    App->>Bundle: Build application
+    
+    loop For each import
+        Bundle->>Resolver: Resolve import path
+        Resolver-->>Bundle: Resolved path
+        
+        alt Workspace package
+            Bundle->>Bundle: Include source directly<br/>(for hot reload)
+        else External package
+            Bundle->>Bundle: Include from node_modules<br/>(optimized)
+        end
+    end
+    
+    Bundle-->>App: Bundled application
+    
+    Note over App,Bundle: Workspace packages are<br/>built from source for<br/>better development experience
+```
+
 ## Adding New Apps
 
 To add a new application:
