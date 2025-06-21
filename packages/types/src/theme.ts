@@ -217,7 +217,7 @@ export interface ThemePreferences {
 }
 
 export interface ThemeProviderProps {
-  children: React.ReactNode;
+  children: any; // ReactNode type, but avoiding React dependency in types package
   defaultTheme?: string;
   defaultMode?: ThemeMode;
   enableTransitions?: boolean;

@@ -5,8 +5,8 @@ import {
   ThemeContextValue,
   ThemeProviderProps,
   CustomTheme,
-} from '@launchapp/types';
-import { ThemeService } from '@launchapp/core';
+} from '@code-pilot/types';
+import { ThemeService } from '@code-pilot/core';
 
 const ThemeContext = createContext<ThemeContextValue | undefined>(undefined);
 

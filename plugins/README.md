@@ -232,6 +232,161 @@ Plugins can extend:
 4. **Runtime** - Plugin responds to IDE events
 5. **Deactivation** - Cleanup on disable/uninstall
 
+## Plugin Lifecycle Flow
+
+This diagram shows the complete lifecycle of a plugin from discovery to deactivation.
+
+```mermaid
+stateDiagram-v2
+    [*] --> Discovery: IDE Startup
+    
+    Discovery --> Validation: Found Plugin
+    Discovery --> [*]: No Plugins
+    
+    Validation --> Loading: Valid Manifest
+    Validation --> Failed: Invalid Manifest
+    
+    Loading --> Registered: Loaded Successfully
+    Loading --> Failed: Load Error
+    
+    Registered --> Activating: Activation Event
+    
+    Activating --> Active: Activation Success
+    Activating --> Failed: Activation Error
+    
+    Active --> Running: Processing Events
+    Running --> Active: Event Handled
+    
+    Active --> Deactivating: Disable/Uninstall
+    Running --> Deactivating: IDE Shutdown
+    
+    Deactivating --> Inactive: Cleanup Complete
+    Deactivating --> Failed: Cleanup Error
+    
+    Inactive --> Activating: Re-enable
+    Inactive --> [*]: Uninstalled
+    
+    Failed --> [*]: Plugin Removed
+    
+    note right of Discovery
+        Scan plugin directories
+        Check package.json
+    end note
+    
+    note right of Validation
+        Verify manifest schema
+        Check dependencies
+        Validate permissions
+    end note
+    
+    note right of Active
+        Handle commands
+        Provide services
+        Listen to events
+    end note
+```
+
+## Plugin Communication Flow
+
+This diagram illustrates how plugins communicate with the core IDE and each other.
+
+```mermaid
+sequenceDiagram
+    participant Plugin as Plugin
+    participant API as Plugin API
+    participant Core as IDE Core
+    participant Other as Other Plugins
+    participant UI as User Interface
+    
+    Plugin->>API: Register Command
+    API->>Core: Validate & Store
+    Core-->>API: Command ID
+    API-->>Plugin: Registration Success
+    
+    UI->>Core: Execute Command
+    Core->>API: Route Command
+    API->>Plugin: Execute Handler
+    Plugin->>API: Perform Action
+    
+    alt Direct Action
+        API->>Core: Update State
+        Core->>UI: Update Interface
+    else Inter-Plugin Communication
+        API->>Core: Emit Event
+        Core->>Other: Notify Subscribers
+        Other->>Core: Handle Event
+        Core->>UI: Update Interface
+    end
+    
+    Plugin->>API: Request Service
+    API->>Core: Check Permissions
+    Core-->>API: Service Access
+    API-->>Plugin: Service Instance
+    
+    Note over Plugin,UI: All communication goes through<br/>the Plugin API for security
+```
+
+## Plugin Security Flow
+
+This diagram shows how the plugin security sandbox enforces permissions and restrictions.
+
+```mermaid
+graph TD
+    subgraph "Plugin Sandbox"
+        Plugin[Plugin Code]
+        Sandbox[Security Sandbox]
+        Permissions[Permission System]
+    end
+    
+    subgraph "Permission Types"
+        FileAccess[File System Access<br/>- Read workspace<br/>- Write workspace<br/>- Read config]
+        NetworkAccess[Network Access<br/>- HTTP requests<br/>- WebSocket<br/>- API calls]
+        SystemAccess[System Access<br/>- Execute commands<br/>- Environment vars<br/>- Process info]
+        UIAccess[UI Access<br/>- Create views<br/>- Show notifications<br/>- Open dialogs]
+    end
+    
+    subgraph "Security Checks"
+        Manifest[Manifest Validation]
+        Runtime[Runtime Checks]
+        Resource[Resource Limits]
+        Audit[Security Audit]
+    end
+    
+    subgraph "Enforcement"
+        Allow[Allow Operation]
+        Deny[Deny & Log]
+        Prompt[User Prompt]
+    end
+    
+    Plugin --> Sandbox
+    Sandbox --> Permissions
+    
+    Permissions --> FileAccess
+    Permissions --> NetworkAccess
+    Permissions --> SystemAccess
+    Permissions --> UIAccess
+    
+    FileAccess --> Manifest
+    NetworkAccess --> Manifest
+    SystemAccess --> Manifest
+    UIAccess --> Manifest
+    
+    Manifest --> Runtime
+    Runtime --> Resource
+    Resource --> Audit
+    
+    Audit -->|Permitted| Allow
+    Audit -->|Forbidden| Deny
+    Audit -->|User Decision| Prompt
+    
+    Prompt -->|Approved| Allow
+    Prompt -->|Rejected| Deny
+    
+    style Sandbox fill:#ff9800,stroke:#f57c00
+    style Permissions fill:#2196f3,stroke:#1976d2
+    style Audit fill:#f44336,stroke:#d32f2f
+```
+
 ### Security
 
 Plugins run in a sandboxed environment:

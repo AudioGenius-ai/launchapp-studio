@@ -1,5 +1,5 @@
 import React from 'react';
-import { ThemeSettingsSection } from '@launchapp/ui';
+import { ThemeSettingsSection } from '@code-pilot/ui';
 
 export const SettingsPage: React.FC = () => {
   return (

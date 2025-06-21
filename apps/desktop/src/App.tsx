@@ -1,5 +1,5 @@
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
-import { ThemeProvider, CompactThemeSwitcher } from '@launchapp/ui';
+import { ThemeProvider, CompactThemeSwitcher } from '@code-pilot/ui';
 import { ProjectsPage } from './features/projects';
 import { EditorPage } from './features/editor/EditorPage';
 import { SettingsPage } from './features/settings/SettingsPage';

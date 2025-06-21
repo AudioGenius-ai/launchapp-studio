@@ -1,5 +1,7 @@
 // Advanced tab management types
 
+import { EditorTab, EditorFile } from './editor';
+
 export interface TabGroup {
   id: string;
   tabs: string[]; // Array of tab IDs
@@ -119,4 +121,4 @@ export const DEFAULT_TAB_MANAGER_CONFIG: TabManagerConfiguration = {
 };
 
 // Re-export EditorTab and EditorFile from editor types for convenience
-export { EditorTab, EditorFile } from './editor';
+export { EditorTab, EditorFile };

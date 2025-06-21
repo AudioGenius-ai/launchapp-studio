@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import { useTheme } from '../providers/ThemeProvider';
-import { CustomTheme, ThemeColors } from '@launchapp/types';
+import { CustomTheme, ThemeColors } from '@code-pilot/types';
 import { Button } from './Button';
 import { Dialog } from './Dialog';
 

@@ -9,7 +9,7 @@ import {
   ThemeBorderRadius,
   ThemeTransitions,
   ThemeZIndex,
-} from '@launchapp/types';
+} from '@code-pilot/types';
 
 // Default theme definitions
 const defaultSpacing: ThemeSpacing = {
@@ -508,7 +508,7 @@ export class ThemeService {
     
     // Apply color variables
     Object.entries(theme.colors).forEach(([key, value]) => {
-      root.style.setProperty(`--color-${key}`, value);
+      root.style.setProperty(`--color-${key}`, String(value));
     });
     
     // Apply font variables
@@ -516,22 +516,22 @@ export class ThemeService {
     root.style.setProperty('--font-family-mono', theme.fonts.fontFamilyMono);
     
     Object.entries(theme.fonts.fontSize).forEach(([key, value]) => {
-      root.style.setProperty(`--font-size-${key}`, value);
+      root.style.setProperty(`--font-size-${key}`, String(value));
     });
     
     // Apply spacing variables
     Object.entries(theme.spacing).forEach(([key, value]) => {
-      root.style.setProperty(`--spacing-${key}`, value);
+      root.style.setProperty(`--spacing-${key}`, String(value));
     });
     
     // Apply border radius variables
     Object.entries(theme.borderRadius).forEach(([key, value]) => {
-      root.style.setProperty(`--radius-${key}`, value);
+      root.style.setProperty(`--radius-${key}`, String(value));
     });
     
     // Apply transition variables
     Object.entries(theme.transitions.duration).forEach(([key, value]) => {
-      root.style.setProperty(`--transition-${key}`, value);
+      root.style.setProperty(`--transition-${key}`, String(value));
     });
     
     // Set theme mode

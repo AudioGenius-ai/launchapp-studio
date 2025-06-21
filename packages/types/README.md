@@ -285,6 +285,176 @@ export function isCodeFile(extension: string): boolean {
 }
 ```
 
+## Type Inheritance Flow
+
+This diagram shows how types extend and inherit from each other across the codebase.
+
+```mermaid
+graph TD
+    subgraph "Base Types"
+        BaseEntity[BaseEntity<br/>id: string<br/>createdAt: Date<br/>updatedAt: Date]
+        BaseDto[BaseDto]
+        BaseResponse[BaseResponse<T><br/>data: T<br/>error?: IpcError]
+    end
+    
+    subgraph "Domain Entities"
+        Project[Project]
+        Session[Session]
+        Message[Message]
+        FileSystemNode[FileSystemNode]
+    end
+    
+    subgraph "DTO Types"
+        CreateProjectDto[CreateProjectDto]
+        UpdateProjectDto[UpdateProjectDto]
+        CreateSessionDto[CreateSessionDto]
+        UpdateSessionDto[UpdateSessionDto]
+    end
+    
+    subgraph "Extended Types"
+        ProjectWithStats[ProjectWithStats<br/>+ fileCount<br/>+ totalSize<br/>+ lastCommit]
+        SessionWithMessages[SessionWithMessages<br/>+ messages: Message[]<br/>+ messageCount]
+        FileSystemNodeWithContent[FileSystemNodeWithContent<br/>+ content: string<br/>+ encoding: string]
+    end
+    
+    BaseEntity --> Project
+    BaseEntity --> Session
+    BaseEntity --> Message
+    
+    BaseDto --> CreateProjectDto
+    BaseDto --> UpdateProjectDto
+    BaseDto --> CreateSessionDto
+    BaseDto --> UpdateSessionDto
+    
+    Project --> ProjectWithStats
+    Session --> SessionWithMessages
+    FileSystemNode --> FileSystemNodeWithContent
+    
+    style BaseEntity fill:#f9f,stroke:#333,stroke-width:4px
+    style BaseDto fill:#f9f,stroke:#333,stroke-width:4px
+    style BaseResponse fill:#f9f,stroke:#333,stroke-width:4px
+```
+
+## Type Usage Flow
+
+This diagram illustrates how types are consumed across different packages in the monorepo.
+
+```mermaid
+graph LR
+    subgraph "Types Package"
+        Types[Type Definitions<br/>- Interfaces<br/>- Enums<br/>- Type Guards]
+    end
+    
+    subgraph "Frontend Packages"
+        WebApp[Web App<br/>Uses: All Types]
+        Components[UI Components<br/>Uses: UI Types]
+        Stores[State Stores<br/>Uses: Domain Types]
+    end
+    
+    subgraph "Backend Packages"
+        TauriCore[Tauri Core<br/>Uses: IPC Types]
+        FileService[File Service<br/>Uses: FileSystem Types]
+        AIService[AI Service<br/>Uses: Session/Message Types]
+    end
+    
+    subgraph "Shared Packages"
+        Utils[Utils<br/>Uses: Utility Types]
+        Validation[Validation<br/>Uses: DTO Types]
+    end
+    
+    Types --> WebApp
+    Types --> Components
+    Types --> Stores
+    Types --> TauriCore
+    Types --> FileService
+    Types --> AIService
+    Types --> Utils
+    Types --> Validation
+    
+    WebApp --> Components
+    WebApp --> Stores
+    Stores --> TauriCore
+    TauriCore --> FileService
+    TauriCore --> AIService
+    
+    style Types fill:#2196F3,color:#fff
+```
+
+## Type Validation Flow
+
+This diagram shows how runtime type checking and validation works throughout the application.
+
+```mermaid
+sequenceDiagram
+    participant Client as Frontend Client
+    participant Validator as Type Validator
+    participant Guards as Type Guards
+    participant Backend as Tauri Backend
+    participant DB as Database
+    
+    Client->>Validator: Submit Data (unknown type)
+    Validator->>Guards: Check Type Structure
+    
+    alt Valid Type
+        Guards-->>Validator: Type is Valid
+        Validator->>Backend: Send Typed Data
+        Backend->>DB: Store Validated Data
+        DB-->>Backend: Success
+        Backend-->>Client: Success Response
+    else Invalid Type
+        Guards-->>Validator: Type is Invalid
+        Validator-->>Client: Validation Error<br/>with Details
+    end
+    
+    Note over Validator,Guards: Runtime validation ensures<br/>type safety at boundaries
+```
+
+## Type Transformation Flow
+
+This diagram illustrates how DTOs are transformed to entities and vice versa.
+
+```mermaid
+graph TD
+    subgraph "Client Layer"
+        FormData[Form Data<br/>Raw Input]
+        ClientDTO[Client DTO<br/>Validated Input]
+    end
+    
+    subgraph "Transformation Layer"
+        DTOValidator[DTO Validator<br/>- Required fields<br/>- Type checking<br/>- Format validation]
+        DTOMapper[DTO Mapper<br/>- Field mapping<br/>- Default values<br/>- Transformations]
+        EntityMapper[Entity Mapper<br/>- Add metadata<br/>- Format dates<br/>- Calculate fields]
+    end
+    
+    subgraph "Domain Layer"
+        DomainEntity[Domain Entity<br/>Full Object Model]
+        BusinessLogic[Business Logic<br/>- Validation<br/>- Processing<br/>- Rules]
+    end
+    
+    subgraph "Persistence Layer"
+        DBEntity[Database Entity<br/>Optimized for Storage]
+        DBSchema[DB Schema<br/>Tables & Relations]
+    end
+    
+    FormData --> DTOValidator
+    DTOValidator --> ClientDTO
+    ClientDTO --> DTOMapper
+    DTOMapper --> DomainEntity
+    DomainEntity --> BusinessLogic
+    BusinessLogic --> EntityMapper
+    EntityMapper --> DBEntity
+    DBEntity --> DBSchema
+    
+    DBSchema -.->|Read| DBEntity
+    DBEntity -.->|Reverse Transform| DomainEntity
+    DomainEntity -.->|To Response DTO| ClientDTO
+    ClientDTO -.->|To UI| FormData
+    
+    style DTOValidator fill:#ff9800
+    style DTOMapper fill:#4caf50
+    style EntityMapper fill:#2196f3
+```
+
 ## Benefits
 
 1. **Type Safety**: Catch errors at compile time

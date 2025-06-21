@@ -2,7 +2,7 @@
 @import "tailwindcss";
 
 /* Import theme CSS variables */
-@import "@launchapp/ui/src/styles/theme.css";
+@import "@code-pilot/ui/src/styles/theme.css";
 
 /* Global styles */
 * {

@@ -187,6 +187,98 @@ import type { Project, FileSystemNode } from '@code-pilot/types';
 import { formatFileSize, debounce } from '@code-pilot/utils';
 ```
 
+## Package Build Flow
+
+This diagram shows how packages are built and bundled in the monorepo.
+
+```mermaid
+graph TD
+    subgraph "Build Pipeline"
+        Start[pnpm build]
+        Clean[Clean dist/]
+        TypeCheck[Type Check]
+        Compile[TypeScript Compile]
+        Bundle[Bundle if needed]
+        Types[Generate .d.ts]
+        Output[Output to dist/]
+    end
+    
+    subgraph "Package Order"
+        Utils[1. @code-pilot/utils]
+        Types[2. @code-pilot/types]
+        Core[3. @code-pilot/core]
+        UI[4. @code-pilot/ui]
+    end
+    
+    subgraph "Build Outputs"
+        ESM[ES Modules<br/>.js files]
+        DTS[Type Definitions<br/>.d.ts files]
+        Maps[Source Maps<br/>.js.map files]
+    end
+    
+    Start --> Clean
+    Clean --> Utils
+    Utils --> Types
+    Types --> Core
+    Core --> UI
+    
+    UI --> TypeCheck
+    TypeCheck -->|Pass| Compile
+    TypeCheck -->|Fail| Error[Build Error]
+    
+    Compile --> Bundle
+    Bundle --> Types
+    Types --> Output
+    
+    Output --> ESM
+    Output --> DTS
+    Output --> Maps
+    
+    style Start fill:#4caf50
+    style Error fill:#f44336
+    style Output fill:#2196f3
+```
+
+## Dependency Resolution Flow
+
+This diagram illustrates how dependencies are resolved across packages in the workspace.
+
+```mermaid
+sequenceDiagram
+    participant Dev as Developer
+    participant PNPM as pnpm
+    participant Workspace as Workspace Config
+    participant Registry as npm Registry
+    participant Local as Local Packages
+    participant Node as node_modules
+    
+    Dev->>PNPM: pnpm install
+    PNPM->>Workspace: Read pnpm-workspace.yaml
+    
+    Note over Workspace: packages:<br/>- 'packages/*'<br/>- 'apps/*'<br/>- 'plugins/*'
+    
+    PNPM->>Local: Scan local packages
+    
+    loop For each package
+        PNPM->>Local: Read package.json
+        Local-->>PNPM: Dependencies list
+        
+        alt Workspace package
+            PNPM->>Local: Link to local package
+            Local-->>Node: Symlink created
+        else External package
+            PNPM->>Registry: Fetch package
+            Registry-->>Node: Install in .pnpm store
+            Node-->>Local: Hard link created
+        end
+    end
+    
+    PNPM->>Node: Create node_modules structure
+    Node-->>Dev: Dependencies ready
+    
+    Note over Node: Workspace packages are<br/>symlinked for hot reload
+```
+
 ## Best Practices
 
 1. **Keep packages focused**: One clear purpose per package

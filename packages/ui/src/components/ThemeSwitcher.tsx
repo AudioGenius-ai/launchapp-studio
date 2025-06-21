@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useTheme } from '../providers/ThemeProvider';
-import { ThemeMode } from '@launchapp/types';
+import { ThemeMode } from '@code-pilot/types';
 import { Button } from './Button';
 
 interface ThemeSwitcherProps {

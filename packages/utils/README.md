@@ -266,6 +266,181 @@ const size = formatFileSize(1536);
 5. **Testing**: Write unit tests for all utilities
 6. **Documentation**: Include JSDoc comments with examples
 
+## Utility Function Dependencies
+
+This diagram shows which utilities depend on others within the utils package.
+
+```mermaid
+graph TD
+    subgraph "Core Utilities"
+        isValidPath[isValidPath]
+        normalizePath[normalizePath]
+        getPlatform[getPlatform]
+    end
+    
+    subgraph "String Utilities"
+        sanitizeFileName[sanitizeFileName]
+        toKebabCase[toKebabCase]
+        toPascalCase[toPascalCase]
+        truncate[truncate]
+    end
+    
+    subgraph "File Utilities"
+        joinPath[joinPath]
+        getFileName[getFileName]
+        getDirectory[getDirectory]
+        formatFileSize[formatFileSize]
+    end
+    
+    subgraph "Validation Utilities"
+        isValidProjectName[isValidProjectName]
+        isValidFilePath[isValidFilePath]
+        validate[validate]
+    end
+    
+    subgraph "Async Utilities"
+        debounce[debounce]
+        throttle[throttle]
+        retry[retry]
+        cancellable[cancellable]
+    end
+    
+    normalizePath --> isValidPath
+    joinPath --> normalizePath
+    getFileName --> normalizePath
+    getDirectory --> normalizePath
+    
+    sanitizeFileName --> toKebabCase
+    isValidProjectName --> sanitizeFileName
+    isValidFilePath --> normalizePath
+    isValidFilePath --> isValidPath
+    
+    validate --> isValidPath
+    validate --> isValidProjectName
+    
+    retry --> sleep
+    cancellable --> AbortController
+    
+    style isValidPath fill:#f9f,stroke:#333,stroke-width:4px
+    style normalizePath fill:#f9f,stroke:#333,stroke-width:4px
+    style getPlatform fill:#f9f,stroke:#333,stroke-width:4px
+```
+
+## Data Transformation Flow
+
+This diagram illustrates how utilities process and transform data throughout the application.
+
+```mermaid
+sequenceDiagram
+    participant Input as Raw Input
+    participant Validator as Validation Utils
+    participant Sanitizer as Sanitization Utils
+    participant Formatter as Formatting Utils
+    participant Output as Processed Output
+    
+    Input->>Validator: Raw Data
+    
+    alt Valid Input
+        Validator->>Sanitizer: Valid Data
+        Note over Sanitizer: Remove unsafe chars<br/>Normalize paths<br/>Trim whitespace
+        Sanitizer->>Formatter: Clean Data
+        Note over Formatter: Format dates<br/>Format file sizes<br/>Apply templates
+        Formatter->>Output: Formatted Data
+    else Invalid Input
+        Validator-->>Input: Validation Error<br/>with Details
+    end
+    
+    Note over Input,Output: Pipeline ensures data consistency<br/>and safety throughout the app
+```
+
+## Error Handling Flow
+
+This diagram shows how errors are handled within utility functions.
+
+```mermaid
+graph TD
+    subgraph "Utility Function"
+        Start[Function Called]
+        Validate[Validate Input]
+        Process[Process Data]
+        HandleError[Handle Error]
+        Return[Return Result]
+    end
+    
+    subgraph "Error Types"
+        ValidationError[ValidationError<br/>- Invalid input<br/>- Type mismatch]
+        ProcessingError[ProcessingError<br/>- Calculation error<br/>- Format error]
+        SystemError[SystemError<br/>- File not found<br/>- Permission denied]
+    end
+    
+    subgraph "Error Strategies"
+        ReturnNull[Return null/undefined]
+        ThrowError[Throw Error]
+        ReturnDefault[Return Default Value]
+        ReturnResult[Return Error Result]
+    end
+    
+    Start --> Validate
+    Validate -->|Valid| Process
+    Validate -->|Invalid| ValidationError
+    Process -->|Success| Return
+    Process -->|Error| ProcessingError
+    Process -->|System Issue| SystemError
+    
+    ValidationError --> HandleError
+    ProcessingError --> HandleError
+    SystemError --> HandleError
+    
+    HandleError --> ReturnNull
+    HandleError --> ThrowError
+    HandleError --> ReturnDefault
+    HandleError --> ReturnResult
+    
+    style ValidationError fill:#ff9800
+    style ProcessingError fill:#f44336
+    style SystemError fill:#e91e63
+```
+
+## Performance Optimization Flow
+
+This diagram illustrates how debounce and throttle utilities optimize performance.
+
+```mermaid
+sequenceDiagram
+    participant User as User Input
+    participant Debounce as Debounce Wrapper
+    participant Throttle as Throttle Wrapper
+    participant Function as Target Function
+    participant Timer as Timer/Scheduler
+    
+    Note over User,Function: Debounce Example (Search)
+    User->>Debounce: Type "H"
+    Debounce->>Timer: Start 300ms timer
+    User->>Debounce: Type "He"
+    Debounce->>Timer: Cancel & restart timer
+    User->>Debounce: Type "Hel"
+    Debounce->>Timer: Cancel & restart timer
+    User->>Debounce: Type "Hell"
+    Debounce->>Timer: Cancel & restart timer
+    User->>Debounce: Type "Hello"
+    Debounce->>Timer: Cancel & restart timer
+    Timer-->>Function: Execute after 300ms<br/>search("Hello")
+    
+    Note over User,Function: Throttle Example (Scroll)
+    User->>Throttle: Scroll event 1
+    Throttle->>Function: Execute immediately
+    Throttle->>Timer: Block for 100ms
+    User->>Throttle: Scroll event 2
+    Throttle--xUser: Blocked (in cooldown)
+    User->>Throttle: Scroll event 3
+    Throttle--xUser: Blocked (in cooldown)
+    Timer-->>Throttle: Cooldown complete
+    User->>Throttle: Scroll event 4
+    Throttle->>Function: Execute
+    
+    Note over Debounce,Throttle: Debounce: Delays execution until activity stops<br/>Throttle: Limits execution frequency
+```
+
 ## Testing
 
 All utilities should have comprehensive unit tests:

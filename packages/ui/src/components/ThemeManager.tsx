@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useTheme } from '../providers/ThemeProvider';
-import { CustomTheme } from '@launchapp/types';
-import { ThemeService } from '@launchapp/core';
+import { CustomTheme } from '@code-pilot/types';
+import { ThemeService } from '@code-pilot/core';
 import { Button } from './Button';
 import { ThemeSwitcher, ThemeSelector } from './ThemeSwitcher';
 import { ThemeEditorDialog } from './ThemeEditor';
