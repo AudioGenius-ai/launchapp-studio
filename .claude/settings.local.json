@@ -2,7 +2,11 @@
   "permissions": {
     "allow": [
       "Bash(pnpm add:*)",
-      "Bash(mkdir:*)"
+      "Bash(mkdir:*)",
+      "Bash(pnpm build)",
+      "Bash(rm:*)",
+      "Bash(git restore:*)",
+      "Bash(git add:*)"
     ],
     "deny": []
   }

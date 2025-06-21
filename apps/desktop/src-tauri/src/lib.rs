@@ -33,6 +33,12 @@ pub fn run() {
             commands::filesystem::path_exists,
             commands::filesystem::watch_directory,
             commands::filesystem::unwatch_directory,
+            commands::settings::load_settings,
+            commands::settings::save_settings,
+            commands::settings::reset_settings,
+            commands::settings::get_settings_file_path,
+            commands::settings::export_settings,
+            commands::settings::import_settings,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

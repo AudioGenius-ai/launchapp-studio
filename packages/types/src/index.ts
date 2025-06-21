@@ -67,3 +67,12 @@ export * from './filesystem';
 
 // Export editor types
 export * from './editor';
+
+// Export settings types
+export * from './settings';
+
+// Export theme types
+export * from './theme';
+
+// Export tab management types
+export * from './tabs';

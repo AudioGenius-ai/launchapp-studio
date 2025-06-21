@@ -27,9 +27,14 @@ export const EditorTabs: React.FC<EditorTabsProps> = ({
   const [draggedTab, setDraggedTab] = React.useState<number | null>(null);
   const [dragOverIndex, setDragOverIndex] = React.useState<number | null>(null);
 
-  const handleDragStart = (e: React.DragEvent, index: number) => {
+  const handleDragStart = (e: React.DragEvent, index: number, tab: EditorTab) => {
     setDraggedTab(index);
     e.dataTransfer.effectAllowed = 'move';
+    // Set drag data for cross-group dragging
+    e.dataTransfer.setData('application/tab-drag', JSON.stringify({
+      tabId: tab.id,
+      sourceIndex: index
+    }));
   };
 
   const handleDragOver = (e: React.DragEvent, index: number) => {
@@ -98,13 +103,17 @@ export const EditorTabs: React.FC<EditorTabsProps> = ({
               dragOverIndex === index && 'border-l-2 border-blue-500'
             )}
             draggable={!tab.isPinned}
-            onDragStart={(e) => handleDragStart(e, index)}
+            onDragStart={(e) => handleDragStart(e, index, tab)}
             onDragOver={(e) => handleDragOver(e, index)}
             onDragLeave={handleDragLeave}
             onDrop={(e) => handleDrop(e, index)}
             onDragEnd={handleDragEnd}
             onMouseDown={(e) => handleTabClick(e, tab.id)}
             onAuxClick={(e) => handleTabClick(e, tab.id)}
+            onContextMenu={(e) => {
+              e.preventDefault();
+              // Parent component can handle context menu
+            }}
           >
             {tab.isPinned && (
               <Pin className="w-3 h-3 mr-1 text-gray-500" />
