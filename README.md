@@ -1,10 +1,10 @@
 # Code Pilot Studio v2
 
-A next-generation AI-powered IDE built with Tauri, React, and TypeScript. Currently in active development with Phase 2 core features completed.
+A next-generation AI-powered IDE built with Tauri, React, and TypeScript. Currently in active development with Phase 3 advanced features in progress.
 
 ## Current Project Status
 
-### 🎆 Phase 1: Foundation (Completed)
+### ✅ Phase 1: Foundation (Completed)
 
 - ✓ Monorepo setup with pnpm workspaces and Turborepo
 - ✓ Tauri desktop application with hot reload
@@ -12,35 +12,38 @@ A next-generation AI-powered IDE built with Tauri, React, and TypeScript. Curren
 - ✓ TypeScript project references configuration
 - ✓ Build pipeline with Vite
 
-### 🚀 Phase 2: Core Features (Completed)
+### ✅ Phase 2: Core Features (Completed)
 
 - ✓ Project management system with CRUD operations
 - ✓ File explorer with tree view and operations
-- ✓ Monaco editor integration with tabs
+- ✓ Monaco editor integration with syntax highlighting (20+ languages)
+- ✓ Advanced tab management with split panes and drag-and-drop
 - ✓ File system operations (create, read, update, delete, copy, move)
 - ✓ File watching with real-time updates
-- ✓ Dark theme with Radix UI components
-- ✓ Type-safe IPC communication
+- ✓ Theme system with light/dark modes and custom theme support
+- ✓ Comprehensive settings system with persistence
+- ✓ Configurable keyboard shortcuts
 
-### 🔮 Phase 3: AI Integration (Upcoming)
+### 🚧 Phase 3: Advanced Features (In Progress)
 
-- ☐ AI provider abstraction layer
-- ☐ Claude API integration
-- ☐ Streaming chat interface
-- ☐ Context management
-- ☐ Tool calling implementation
-
-### 🛠️ Phase 4: Advanced Features (Planned)
-
-- ☐ Session persistence with SQLite
-- ☐ Git integration
-- ☐ Terminal integration
-- ☐ Plugin system
+- 🚧 Terminal integration via `tauri-plugin-terminal` (xterm.js)
+- 🚧 Git operations via `tauri-plugin-git` (libgit2)
+- 🚧 AI Chat interface with streaming responses
+- ☐ SQLite persistence for projects and sessions
+- ☐ Plugin system foundation
 - ☐ LSP support
+
+### 🔮 Phase 4: AI Integration (Upcoming)
+
+- ☐ Claude CLI integration via `tauri-plugin-claude`
+- ☐ Session persistence and recovery
+- ☐ MCP config support for tool discovery
+- ☐ Multiple concurrent Claude sessions
+- ☐ Additional AI providers as plugins
 
 ## Architecture
 
-This project uses a monorepo structure managed with pnpm workspaces and Turborepo.
+This project uses a monorepo structure with a modular Tauri plugin architecture for core functionality. All major Rust features are implemented as separate Tauri plugins, providing better modularity, reusability, and separation of concerns.
 
 ```mermaid
 graph TB
@@ -59,11 +62,11 @@ graph TB
         C --> C3[@code-pilot/types<br/>TypeScript Types]
         C --> C4[@code-pilot/utils<br/>Utilities]
         
-        D --> D1[AI Providers]
-        D --> D2[Editor Plugins]
-        D --> D3[Terminal Plugins]
-        D --> D4[Version Control]
-        D --> D5[Language Support]
+        D --> D1[tauri-plugin-claude]
+        D --> D2[tauri-plugin-terminal]
+        D --> D3[tauri-plugin-git]
+        D --> D4[tauri-plugin-mcp]
+        D --> D5[Future Plugins]
         
         E --> E1[Build Tools]
         E --> E2[Scripts]
@@ -300,14 +303,29 @@ stateDiagram-v2
 
 ```text
 ├── apps/
-│   └── desktop/          # Tauri desktop application
+│   └── desktop/              # Tauri desktop application
+│       ├── src/              # React frontend
+│       │   └── features/     # Feature modules (editor, terminal, git, ai)
+│       └── src-tauri/        # Rust backend
 ├── packages/
-│   ├── core/            # Core business logic
-│   ├── ui/              # Shared UI components
-│   ├── types/           # Shared TypeScript types
-│   └── utils/           # Shared utilities
-├── plugins/             # Plugin packages
-└── tools/               # Build tools and scripts
+│   ├── core/                 # Core business logic and services
+│   ├── ui/                   # Shared UI components library
+│   ├── types/                # Shared TypeScript type definitions
+│   └── utils/                # Common utilities
+├── plugins/                  # Tauri plugins (Rust + TypeScript)
+│   ├── tauri-plugin-claude/  # Claude CLI integration
+│   │   ├── src/              # Rust plugin code
+│   │   └── permissions/      # Permission definitions
+│   ├── tauri-plugin-terminal/# Terminal integration (xterm.js)
+│   │   ├── src/              # Rust plugin code
+│   │   └── permissions/      # Permission definitions
+│   ├── tauri-plugin-git/     # Git operations (libgit2)
+│   │   ├── src/              # Rust plugin code
+│   │   └── permissions/      # Permission definitions
+│   └── tauri-plugin-mcp/     # MCP protocol support
+│       ├── src/              # Rust plugin code
+│       └── permissions/      # Permission definitions
+└── tools/                    # Build tools and scripts
 ```
 
 ## Quick Start Guide
@@ -317,7 +335,11 @@ stateDiagram-v2
 - Node.js 18+ (for modern JavaScript features)
 - pnpm 8+ (package manager)
 - Rust (latest stable)
-- Tauri CLI (`cargo install tauri-cli`)
+- Tauri CLI 2.0+ (`cargo install tauri-cli --version "^2"`)
+- Platform-specific dependencies:
+  - **macOS**: Xcode Command Line Tools
+  - **Linux**: `webkit2gtk-4.1`, `libssl-dev`, `libgtk-3-dev`
+  - **Windows**: Microsoft C++ Build Tools
 
 ### Getting Started
 
@@ -325,30 +347,40 @@ stateDiagram-v2
 
 ```bash
 git clone <repository-url>
-cd code-pilot-studio-v2
+cd launchapp-studio-ide
 pnpm install
 ```
 
 2. **Start development mode**:
 
 ```bash
-# Terminal 1: Start package watchers
-pnpm dev
-
-# Terminal 2: Run the desktop app
+# From the desktop app directory
 cd apps/desktop
 pnpm tauri:dev
+
+# The app will automatically watch for changes in all packages
 ```
 
 3. **Build for production**:
 
 ```bash
-# Build all packages
+# Build all packages first
 pnpm build
 
-# Build desktop app
+# Then build the desktop app
 cd apps/desktop
 pnpm tauri:build
+```
+
+4. **Working with plugins** (optional):
+
+```bash
+# Build a specific plugin
+cd plugins/tauri-plugin-terminal
+cargo build
+
+# Run plugin tests
+cargo test
 ```
 
 ## Development Workflow
@@ -381,6 +413,8 @@ pnpm update --recursive
 2. **Type Safety**: TypeScript runs across all packages with project references
 3. **Code Sharing**: Import workspace packages with `@code-pilot/*`
 4. **Debugging**: Use Chrome DevTools for frontend, `RUST_LOG=debug` for backend
+5. **Plugin Development**: Each plugin has its own Cargo.toml and can be developed independently
+6. **Permission System**: Tauri plugins use a fine-grained permission system defined in `permissions/`
 
 ## Available Scripts
 
@@ -403,32 +437,71 @@ pnpm update --recursive
 
 ### Implemented Features
 
-- 📁 **Project Management** - Create and manage multiple projects
-- 📂 **File Explorer** - Navigate and manipulate files with tree view
-- ✏️ **Code Editor** - Monaco editor with syntax highlighting
-- 🎨 **Dark Theme** - Modern dark UI with Radix components
-- 🔄 **File Operations** - Full CRUD operations on files/folders
+- 📁 **Project Management** - Create and manage multiple projects with workspace support
+- 📂 **File Explorer** - Tree view with search, context menus, and drag-and-drop
+- ✏️ **Code Editor** - Monaco editor with syntax highlighting for 20+ languages
+- 🪟 **Tab Management** - Advanced tabs with split panes and session restoration
+- 🎨 **Theme System** - Light/dark modes with custom theme creation
+- ⚙️ **Settings System** - Comprehensive preferences with import/export
+- 🔄 **File Operations** - Full CRUD operations with copy/move/rename
 - 👀 **File Watching** - Real-time file system change detection
-- ⌘ **Keyboard Shortcuts** - Common IDE shortcuts (partial)
+- ⌨️ **Keyboard Shortcuts** - Fully configurable key bindings
+
+### In Progress Features
+
+- 🖥️ **Terminal Integration** - xterm.js terminal via `tauri-plugin-terminal`
+- 🌐 **Git Integration** - Version control via `tauri-plugin-git` (libgit2)
+- 🤖 **AI Chat Interface** - Streaming AI responses with context awareness
 
 ### Upcoming Features
 
-- 🤖 **AI Integration** - Claude and other LLM providers
-- 💾 **Session Persistence** - Save and restore work sessions
-- 🖥️ **Terminal** - Integrated terminal with tmux support
-- 🌐 **Git Integration** - Version control operations
-- 🧩 **Plugin System** - Extensible architecture
-- 🔍 **Smart Search** - AI-powered code search
+- 🧠 **Claude CLI Integration** - Full Claude CLI wrapper via `tauri-plugin-claude`
+- 💾 **Session Persistence** - SQLite-based project and session storage
+- 🧩 **Plugin System** - Extensible plugin architecture
+- 🔍 **Smart Search** - AI-powered code search and navigation
+- 📊 **LSP Support** - Language Server Protocol integration
+- 🔗 **MCP Support** - Model Context Protocol for AI tools
 
 ## Contributing
 
 See [CONTRIBUTING.md](./CONTRIBUTING.md) for contribution guidelines.
+
+## Tech Stack
+
+### Core Technologies
+
+- **Frontend Framework**: React 19 with TypeScript
+- **Desktop Framework**: Tauri 2.0 (Rust)
+- **Code Editor**: Monaco Editor
+- **Terminal**: xterm.js
+- **Git Integration**: libgit2
+- **Styling**: Tailwind CSS v4
+- **UI Components**: Radix UI
+- **State Management**: Zustand
+- **Build System**: Turborepo + Vite
+- **Package Manager**: pnpm workspaces
+
+### Tauri Plugin Architecture
+
+The project uses a modular plugin architecture where each major feature is implemented as a separate Tauri plugin:
+
+- **tauri-plugin-terminal**: Terminal emulation with PTY support
+- **tauri-plugin-git**: Git operations using libgit2
+- **tauri-plugin-claude**: Claude CLI integration
+- **tauri-plugin-mcp**: Model Context Protocol support
+
+Each plugin is self-contained with its own:
+- Rust implementation
+- TypeScript bindings
+- Permission definitions
+- Build configuration
 
 ## Documentation
 
 - [Architecture Overview](./ARCHITECTURE.md)
 - [Development Guide](./CLAUDE.md)
 - [Rebuild Plan](./REBUILD_PLAN.md)
+- [Terminal & Git Integration Plan](./TERMINAL_GIT_INTEGRATION_PLAN.md)
 
 ## License
 

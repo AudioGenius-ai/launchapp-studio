@@ -179,7 +179,7 @@ pub struct Document {
     pub project_id: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
 pub enum DocumentStatus {
     Draft,
     Review,
@@ -187,7 +187,7 @@ pub enum DocumentStatus {
     Archived,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
 pub enum DocumentTemplate {
     Page,
     Blog, 
@@ -409,9 +409,9 @@ impl Project {
             description,
             created_at: now,
             updated_at: now,
-            owner,
+            owner: owner.clone(),
             members: vec![ProjectMember {
-                user_id: owner.clone(),
+                user_id: owner,
                 role: ProjectRole::Admin,
                 joined_at: now,
             }],

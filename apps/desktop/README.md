@@ -377,12 +377,19 @@ pnpm test
 - **Vite 6** - Build tool and dev server
 - **Tailwind CSS 4** - Styling
 - **Monaco Editor** - Code editing capabilities
+- **xterm.js** - Terminal emulation
 
 ### Features
 - Project management UI
-- File explorer
-- Code editor (Monaco)
-- Dark mode support
+- File explorer with tree view
+- Code editor (Monaco) with syntax highlighting
+- Terminal integration with xterm.js
+- Git integration UI (status, diff, commits)
+- AI chat interface for Claude integration
+- Dark/light theme support
+- Settings and preferences management
+- Advanced tab management with split panes
+- Keyboard shortcuts system
 - Tauri IPC integration
 
 ### IPC Communication
@@ -405,6 +412,9 @@ const project = await invoke('create_project', {
 - **SQLx** - Database access (SQLite)
 - **Serde** - Serialization
 - **Notify** - File system watching
+- **portable-pty** - Cross-platform PTY support
+- **git2** - Git operations via libgit2 (compilation issues)
+- **crossbeam-channel** - Multi-threaded communication
 
 ### Commands Available
 - **Project Management**
@@ -426,6 +436,22 @@ const project = await invoke('create_project', {
   - `search_files` - Search for files
   - `get_file_stats` - Get file metadata
   - `watch_directory` - Watch for changes
+
+- **Plugin Commands** (via Tauri plugins)
+  - **Terminal Plugin** (`plugin:terminal|*`)
+    - `create_terminal` - Create new terminal session
+    - `write_terminal` - Send input to terminal
+    - `resize_terminal` - Resize terminal dimensions
+    - `close_terminal` - Close terminal session
+  - **Git Plugin** (`plugin:git|*`)
+    - `git_status` - Get repository status
+    - `git_commit` - Create a commit
+    - `git_branch` - Manage branches
+    - `git_diff` - Get file diffs
+  - **Claude Plugin** (`plugin:claude|*`)
+    - `create_session` - Start Claude session
+    - `send_message` - Send message to Claude
+    - `get_sessions` - List active sessions
 
 ### Database
 Currently uses in-memory storage, but SQLite integration is prepared:

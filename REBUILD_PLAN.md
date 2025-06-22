@@ -1,8 +1,126 @@
 # Code Pilot Studio v2 - Complete Rebuild Plan
 
+**Last Updated**: January 2025  
+**Current Status**: Phase 2 Completed, Phase 3 In Progress
+
 ## Executive Summary
 
 This document outlines the complete rebuild plan for Code Pilot Studio, transforming it from a prototype into a production-ready, well-architected AI-powered IDE. The rebuild focuses on clean architecture, modularity, and extensibility while maintaining all current features and adding new capabilities.
+
+## Current Progress Summary
+
+### ✅ Completed Phases
+- **Phase 1: Foundation** - 100% Complete
+- **Phase 2: Core Features** - 100% Complete
+
+### 🚧 In Progress
+- **Phase 3: Advanced Features** - Implementing as Tauri Plugins
+
+### 📅 Upcoming
+- **Phase 4: Advanced Features**
+- **Phase 5: Polish & Optimization**
+- **Phase 6: Beta Testing**
+
+## Detailed Progress Report
+
+### Completed Features
+
+#### Infrastructure
+- ✅ Monorepo setup with pnpm workspaces and Turborepo
+- ✅ TypeScript project references configuration
+- ✅ Tauri 2.0 desktop application with hot reload
+- ✅ Shared packages: @code-pilot/core, @code-pilot/ui, @code-pilot/types, @code-pilot/utils
+- ✅ Build pipeline with Vite 6
+- ✅ Type-safe IPC communication layer
+- ✅ Comprehensive error handling and logging
+
+#### UI/UX
+- ✅ Complete UI component library with Radix UI primitives
+- ✅ Dark/Light theme system with CSS variables
+- ✅ Custom theme support with theme editor
+- ✅ Responsive layout with ResizablePanel components
+- ✅ Context menus for file operations
+- ✅ Toast notifications system
+- ✅ Loading states and skeletons
+- ✅ Keyboard shortcuts with customization UI
+
+#### Project Management
+- ✅ Create, read, update, delete projects
+- ✅ Project validation and path checking
+- ✅ Recent projects list with sorting
+- ✅ Project settings and configuration
+- ✅ In-memory storage (ready for SQLite migration)
+- ✅ Project search and filtering
+
+#### File System
+- ✅ File explorer with tree view
+- ✅ File operations: create, read, update, delete, copy, move, rename
+- ✅ Directory operations with recursive support
+- ✅ File search with advanced filters
+- ✅ File watching with real-time updates
+- ✅ File stats and metadata
+- ✅ Context menu operations
+- ✅ Drag and drop support (partial)
+
+#### Editor System
+- ✅ Monaco Editor integration
+- ✅ Multi-tab support with tab management
+- ✅ Split pane editor layout
+- ✅ Syntax highlighting for 100+ languages
+- ✅ File type detection with icons
+- ✅ Editor settings and configuration
+- ✅ Status bar with file information
+- ✅ Find and replace (basic)
+- ✅ Code folding and minimap
+
+#### Settings System
+- ✅ Comprehensive settings UI
+- ✅ Settings categories: General, Editor, Appearance, Keyboard
+- ✅ Settings persistence to file system
+- ✅ Import/Export settings
+- ✅ Reset to defaults functionality
+- ✅ Live preview of settings changes
+
+### In Development
+
+#### Advanced Features (Phase 3)
+- 🚧 Terminal integration via `tauri-plugin-terminal`
+- 🚧 Git operations via `tauri-plugin-git`
+- ⏳ SQLite database integration
+- ⏳ Command palette (advanced)
+- ⏳ Tauri plugin architecture implementation
+
+### Not Yet Started
+
+#### AI Integration (Phase 4)
+- ❌ Claude CLI integration via `tauri-plugin-claude`
+- ❌ Session persistence and recovery mechanisms
+- ❌ Log file streaming with file watching
+- ❌ Multiple concurrent Claude sessions
+- ❌ Process health monitoring and recovery
+- ❌ MCP config support for tool discovery
+- ❌ Additional AI providers as Tauri plugins
+- ❌ OpenAI integration via `tauri-plugin-openai`
+- ❌ Generic MCP support via `tauri-plugin-mcp`
+- ❌ Response caching and optimization
+
+#### Polish & Optimization (Phase 5)
+- ❌ Performance profiling
+- ❌ Memory optimization
+- ❌ Startup time optimization
+- ❌ Comprehensive keyboard navigation
+- ❌ Accessibility improvements
+- ❌ User documentation
+- ❌ Developer documentation
+
+### Technical Debt & Known Issues
+
+1. **Testing**: Test infrastructure is set up but no tests written yet
+2. **Database**: SQLite migrations created but not integrated
+3. **State Management**: Using local state, need to migrate to Zustand for complex state
+4. **Performance**: File tree needs virtualization for large directories
+5. **Error Handling**: Need better user-facing error messages
+6. **Documentation**: Need to complete API documentation
 
 ## Table of Contents
 
@@ -67,6 +185,7 @@ graph TB
         UI[UI Components]
         SM[State Management]
         IPC[IPC Layer]
+        MCC[MCP Client]
     end
     
     subgraph "Backend (Rust)"
@@ -74,6 +193,13 @@ graph TB
         BL[Business Logic]
         DB[Database]
         PS[Plugin System]
+    end
+    
+    subgraph "MCP Sidecar (Rust)"
+        MCP[MCP Server]
+        TP[Tool Provider]
+        CP[Context Provider]
+        AIP[AI Provider Interface]
     end
     
     subgraph "Plugins"
@@ -85,14 +211,19 @@ graph TB
     
     UI --> SM
     SM --> IPC
+    SM --> MCC
+    MCC -->|JSON-RPC/WebSocket| MCP
     IPC --> API
     API --> BL
     BL --> DB
     BL --> PS
-    PS --> AI
     PS --> ED
     PS --> VC
     PS --> TM
+    MCP --> TP
+    MCP --> CP
+    MCP --> AIP
+    AIP --> AI
 ```
 
 ## Technology Stack
@@ -150,6 +281,16 @@ code-pilot-studio-v2/
 │   │   │   └── main.tsx
 │   │   ├── package.json
 │   │   └── tsconfig.json
+│   ├── mcp-server/             # MCP Server (Rust sidecar)
+│   │   ├── src/
+│   │   │   ├── server/         # MCP server implementation
+│   │   │   ├── providers/      # AI provider integrations
+│   │   │   ├── tools/          # Tool implementations
+│   │   │   ├── context/        # Context management
+│   │   │   ├── transport/      # JSON-RPC transport
+│   │   │   └── main.rs
+│   │   ├── Cargo.toml
+│   │   └── README.md
 │   └── web/                    # Future web version
 ├── packages/                   # Shared packages
 │   ├── core/                   # Core business logic
@@ -168,7 +309,14 @@ code-pilot-studio-v2/
 │   │   ├── src/
 │   │   │   ├── api/            # API types
 │   │   │   ├── domain/         # Domain types
-│   │   │   └── ipc/            # IPC types
+│   │   │   ├── ipc/            # IPC types
+│   │   │   └── mcp/            # MCP protocol types
+│   │   └── package.json
+│   ├── mcp-client/             # MCP TypeScript client
+│   │   ├── src/
+│   │   │   ├── client.ts       # MCP client implementation
+│   │   │   ├── transport.ts    # WebSocket transport
+│   │   │   └── types.ts        # Client types
 │   │   └── package.json
 │   └── utils/                  # Shared utilities
 │       ├── src/
@@ -192,6 +340,7 @@ code-pilot-studio-v2/
 ├── docs/                       # Documentation
 │   ├── architecture/
 │   ├── api/
+│   ├── mcp/                    # MCP documentation
 │   └── plugins/
 ├── tests/                      # E2E tests
 ├── pnpm-workspace.yaml
@@ -247,30 +396,111 @@ interface SessionManager {
 
 ### 3. AI Integration Module
 
-**Purpose**: Provide unified interface for multiple AI providers
+**Purpose**: Provide AI capabilities through Claude CLI integration and support for additional providers
 
 **Features**:
-- Provider abstraction layer
-- Streaming response handling
-- Context window management
-- Tool/function calling
-- Token usage tracking
-- Response caching
+- Claude CLI wrapper with proven subprocess management
+- Session persistence and recovery
+- Log file streaming with real-time updates
+- Multiple concurrent Claude sessions
+- Process health monitoring
+- MCP config support for tool discovery
+- Extensible provider system
 
 **Architecture**:
-```typescript
-interface AIProvider {
-  name: string
-  chat(messages: Message[], options: ChatOptions): AsyncIterator<ChatResponse>
-  complete(prompt: string, options: CompletionOptions): Promise<string>
-  embeddings(texts: string[]): Promise<number[][]>
+
+```mermaid
+graph LR
+    subgraph "IDE Frontend"
+        UI[Chat UI]
+        TC[Tauri Commands]
+    end
+    
+    subgraph "Tauri Plugins"
+        CP[tauri-plugin-claude]
+        OP[tauri-plugin-openai]
+        MP[tauri-plugin-mcp]
+    end
+    
+    subgraph "External"
+        CLI[Claude CLI]
+        OA[OpenAI API]
+        MCP[MCP Servers]
+    end
+    
+    UI --> TC
+    TC --> CP
+    TC --> OP
+    TC --> MP
+    CP --> CLI
+    OP --> OA
+    MP --> MCP
+```
+
+**Claude Plugin Components**:
+```rust
+// tauri-plugin-claude implementation
+pub struct ClaudeService {
+    sessions: HashMap<String, Session>,
+    process_manager: ProcessManager,
+    file_watcher: FileWatcher,
 }
 
-class AIManager {
-  registerProvider(provider: AIProvider): void
-  getProvider(name: string): AIProvider
-  setDefaultProvider(name: string): void
+impl ClaudeService {
+    pub async fn create_session(&mut self, config: SessionConfig) -> Result<Session> {
+        // Spawn Claude CLI with proper flags
+        let cmd = format!(
+            "claude -p '{}' --verbose --output-format stream-json \
+             --permission-mode bypassPermissions | tee '{}'",
+            config.prompt, config.log_path
+        );
+        
+        let process = self.process_manager.spawn(cmd)?;
+        let session = Session::new(process.id, config);
+        
+        // Setup file watching for real-time updates
+        self.file_watcher.watch(&session.log_path)?;
+        
+        self.sessions.insert(session.id.clone(), session);
+        Ok(session)
+    }
+    
+    pub async fn recover_sessions(&mut self) -> Result<Vec<Session>> {
+        // Scan for existing log files and recover sessions
+        let sessions = self.scan_session_directory()?;
+        for session in sessions {
+            self.recover_session(session)?;
+        }
+        Ok(recovered)
+    }
 }
+```
+
+**Frontend Usage**:
+```typescript
+// Direct invocation via Tauri commands
+import { invoke } from '@tauri-apps/api/core';
+
+interface ClaudeSession {
+  id: string;
+  workspacePath: string;
+  status: 'idle' | 'streaming' | 'failed';
+}
+
+// Create new Claude session
+const session = await invoke<ClaudeSession>('plugin:claude|create_session', {
+  workspacePath: '/path/to/workspace',
+  prompt: 'Initial prompt'
+});
+
+// Send input to existing session
+const response = await invoke('plugin:claude|send_input', {
+  sessionId: session.id,
+  input: 'User message'
+});
+
+// Recover sessions on app start
+const recovered = await invoke<ClaudeSession[]>('plugin:claude|recover_sessions');
 ```
 
 ### 4. Editor System Module
@@ -367,81 +597,96 @@ interface ExtensionAPI {
 
 ## Implementation Roadmap
 
-### Phase 1: Foundation (Weeks 1-2)
+### Phase 1: Foundation (Weeks 1-2) ✅ COMPLETED
 
 **Goal**: Set up project structure and core infrastructure
 
-**Tasks**:
-1. Initialize monorepo with pnpm workspaces
-2. Set up Tauri project with TypeScript
-3. Configure build tools (Vite, Turbo)
-4. Implement basic IPC communication
-5. Create UI component library foundation
-6. Set up testing infrastructure
-7. Implement logging and error handling
+**Completed Tasks**:
+1. ✅ Initialize monorepo with pnpm workspaces
+2. ✅ Set up Tauri project with TypeScript
+3. ✅ Configure build tools (Vite, Turbo)
+4. ✅ Implement basic IPC communication
+5. ✅ Create UI component library foundation
+6. ✅ Set up testing infrastructure (Vitest configured)
+7. ✅ Implement logging and error handling
 
-**Deliverables**:
-- Working Tauri app with hot reload
-- Basic component library
-- IPC type safety
-- CI/CD pipeline
+**Delivered**:
+- ✅ Working Tauri app with hot reload
+- ✅ Complete component library with Radix UI
+- ✅ Type-safe IPC with TypeScript definitions
+- ✅ Monorepo build pipeline with Turborepo
 
-### Phase 2: Core Features (Weeks 3-4)
+### Phase 2: Core Features (Weeks 3-4) ✅ COMPLETED
 
 **Goal**: Implement essential IDE features
 
-**Tasks**:
-1. Project management system
-2. File explorer with tree view
-3. Basic editor with syntax highlighting
-4. Tab management system
-5. Settings and preferences
-6. Theme system (light/dark)
-7. Keyboard shortcuts system
+**Completed Tasks**:
+1. ✅ Project management system with CRUD operations
+2. ✅ File explorer with tree view and context menus
+3. ✅ Monaco editor with syntax highlighting for 100+ languages
+4. ✅ Advanced tab management with split panes
+5. ✅ Comprehensive settings and preferences system
+6. ✅ Theme system (light/dark/custom themes)
+7. ✅ Keyboard shortcuts system with customization
 
-**Deliverables**:
-- Functional file explorer
-- Working code editor
-- Settings persistence
-- Theme switching
+**Delivered**:
+- ✅ Full-featured file explorer with search and file operations
+- ✅ Monaco editor integration with tabs
+- ✅ Settings persistence with UI
+- ✅ Theme switching with custom theme support
+- ✅ File watching and real-time updates
+- ✅ Status bar with file information
+- ✅ Command palette (basic implementation)
 
-### Phase 3: AI Integration (Weeks 5-6)
+### Phase 3: Advanced Features (Weeks 5-6) 🚧 IN PROGRESS
 
-**Goal**: Integrate AI capabilities
-
-**Tasks**:
-1. AI provider abstraction layer
-2. Claude API integration
-3. Streaming chat interface
-4. Context management system
-5. Tool calling implementation
-6. Token usage tracking
-7. Response caching layer
-
-**Deliverables**:
-- Working AI chat
-- Multiple provider support
-- Context awareness
-- Tool execution
-
-### Phase 4: Advanced Features (Weeks 7-8)
-
-**Goal**: Implement advanced IDE features
+**Goal**: Implement terminal and version control as Tauri plugins
 
 **Tasks**:
-1. Session management with persistence
-2. Git integration and diff viewer
-3. Terminal integration with xterm
-4. LSP client implementation
-5. Search and replace functionality
-6. Extension system foundation
-7. Command palette
+1. 🚧 Create `tauri-plugin-terminal` with xterm.js frontend
+2. 🚧 Create `tauri-plugin-git` with libgit2 backend
+3. ⏳ Implement PTY management in terminal plugin
+4. ⏳ Git operations (status, diff, commit, branch)
+5. ⏳ Terminal session management
+6. ⏳ Git UI components (diff viewer, staging)
+7. ⏳ SQLite persistence layer
+
+**Target Deliverables**:
+- Modular Tauri plugins for terminal and git
+- Full terminal functionality with PTY support
+- Complete git integration with UI
+- Database persistence for projects
+
+### Phase 4: AI Integration (Weeks 7-8)
+
+**Goal**: Integrate AI capabilities through Tauri plugins
+
+**Tasks**:
+1. Create `tauri-plugin-claude` with CLI wrapper
+   - Port existing Claude CLI integration
+   - Session persistence and recovery
+   - Log file streaming with file watching
+   - Process lifecycle management
+   - MCP config support
+2. Implement session management
+   - Multiple concurrent sessions
+   - Session recovery on app restart
+   - Health monitoring and orphan detection
+3. Create chat UI components
+   - Streaming message display
+   - Session management UI
+   - Tool discovery from MCP configs
+4. Additional AI provider plugins
+   - `tauri-plugin-openai` for OpenAI API
+   - `tauri-plugin-mcp` for generic MCP support
+5. Response caching and optimization
 
 **Deliverables**:
-- Session history
-- Git operations
-- Integrated terminal
-- Code intelligence
+- Working Claude integration via CLI wrapper
+- Session persistence and recovery
+- Multiple AI provider support via plugins
+- MCP tool discovery and execution
+- Robust process management
 
 ### Phase 5: Polish & Optimization (Weeks 9-10)
 
@@ -502,16 +747,16 @@ interface ExtensionAPI {
 
 ### Feature Parity Checklist
 
-- [ ] Project management
+- [x] Project management
 - [ ] Session persistence
 - [ ] AI chat interface
-- [ ] File explorer
-- [ ] Code editor
+- [x] File explorer
+- [x] Code editor
 - [ ] Terminal integration
 - [ ] Git operations
-- [ ] Theme support
-- [ ] Settings management
-- [ ] Keyboard shortcuts
+- [x] Theme support
+- [x] Settings management
+- [x] Keyboard shortcuts
 
 ### Rollback Plan
 
@@ -574,6 +819,61 @@ Success will be measured not just by feature completeness, but by code quality, 
 
 ---
 
-**Document Version**: 1.0  
-**Last Updated**: December 2024  
-**Status**: Approved for Implementation
+**Document Version**: 1.1  
+**Last Updated**: January 2025  
+**Status**: In Active Development - Phase 3
+
+## Next Immediate Steps
+
+### Phase 3: Create Tauri Plugins
+
+1. **Terminal Plugin (`tauri-plugin-terminal`)**
+   ```bash
+   npx @tauri-apps/cli plugin new terminal --no-api
+   mv tauri-plugin-terminal plugins/
+   ```
+   - Implement PTY management with `portable-pty`
+   - Create terminal session manager
+   - Add xterm.js frontend components
+   - Handle resize, input/output streaming
+
+2. **Git Plugin (`tauri-plugin-git`)**
+   ```bash
+   npx @tauri-apps/cli plugin new git --no-api
+   mv tauri-plugin-git plugins/
+   ```
+   - Integrate libgit2-rs
+   - Implement core git operations
+   - Create diff/status/commit commands
+   - Build UI components for git panel
+
+3. **SQLite Integration**
+   - Continue with existing approach in main app
+   - Integrate migrations from `src-tauri/migrations`
+   - Replace in-memory project storage
+
+### Phase 4: AI Integration Plugins
+
+1. **Claude Plugin (`tauri-plugin-claude`)**
+   ```bash
+   npx @tauri-apps/cli plugin new claude --no-api
+   mv tauri-plugin-claude plugins/
+   ```
+   - Port `claude_service.rs` from old IDE
+   - Implement session management
+   - Add file watching for log streaming
+   - Handle process lifecycle
+
+2. **Additional AI Plugins**
+   - `tauri-plugin-openai`: Direct API integration
+   - `tauri-plugin-mcp`: Generic MCP client
+
+### Implementation Priority
+
+1. Terminal plugin (essential for development)
+2. Git plugin (version control integration)
+3. Claude plugin (AI assistance)
+4. SQLite persistence
+5. Additional AI providers
+
+See [TERMINAL_GIT_INTEGRATION_PLAN.md](./TERMINAL_GIT_INTEGRATION_PLAN.md) for detailed terminal/git implementation.

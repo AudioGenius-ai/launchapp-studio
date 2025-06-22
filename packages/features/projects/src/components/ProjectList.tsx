@@ -2,7 +2,7 @@ import React from 'react';
 import { Project } from '@code-pilot/types';
 import { ProjectCard } from './ProjectCard';
 import { Search, FolderPlus } from 'lucide-react';
-import { cn } from '../../utils/cn';
+import { cn } from '@code-pilot/ui';
 
 interface ProjectListProps {
   projects: Project[];

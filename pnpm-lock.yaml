@@ -198,6 +198,57 @@ importers:
         specifier: ^1.2.0
         version: 1.6.1(@types/node@20.19.1)
 
+  plugins/tauri-plugin-claude:
+    devDependencies:
+      '@tauri-apps/api':
+        specifier: ^2.0.0
+        version: 2.5.0
+      typescript:
+        specifier: ^5.3.3
+        version: 5.6.3
+
+  plugins/tauri-plugin-git:
+    dependencies:
+      '@code-pilot/types':
+        specifier: workspace:^
+        version: link:../../packages/types
+    devDependencies:
+      '@tauri-apps/api':
+        specifier: ^2.0.0
+        version: 2.5.0
+      typescript:
+        specifier: ^5.3.3
+        version: 5.6.3
+
+  plugins/tauri-plugin-mcp-webserver:
+    devDependencies:
+      '@tauri-apps/api':
+        specifier: 2.5.0
+        version: 2.5.0
+      typescript:
+        specifier: ^5.3.3
+        version: 5.6.3
+
+  plugins/tauri-plugin-project-management:
+    devDependencies:
+      '@tauri-apps/api':
+        specifier: ^2.0.0
+        version: 2.5.0
+      typescript:
+        specifier: ^5.0.0
+        version: 5.6.3
+
+  plugins/tauri-plugin-storage: {}
+
+  plugins/tauri-plugin-terminal:
+    devDependencies:
+      '@tauri-apps/api':
+        specifier: ^2.0.0
+        version: 2.5.0
+      typescript:
+        specifier: ^5.3.3
+        version: 5.6.3
+
 packages:
 
   /@alloc/quick-lru@5.2.0:
@@ -1751,7 +1802,6 @@ packages:
 
   /@tauri-apps/api@2.5.0:
     resolution: {integrity: sha512-Ldux4ip+HGAcPUmuLT8EIkk6yafl5vK0P0c0byzAKzxJh7vxelVtdPONjfgTm96PbN24yjZNESY8CKo8qniluA==}
-    dev: false
 
   /@tauri-apps/cli-darwin-arm64@2.5.0:
     resolution: {integrity: sha512-VuVAeTFq86dfpoBDNYAdtQVLbP0+2EKCHIIhkaxjeoPARR0sLpFHz2zs0PcFU76e+KAaxtEtAJAXGNUc8E1PzQ==}

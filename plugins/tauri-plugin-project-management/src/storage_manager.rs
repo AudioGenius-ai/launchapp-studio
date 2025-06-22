@@ -2,11 +2,9 @@ use crate::error::{ProjectManagementError, Result};
 use crate::models::*;
 use chrono::Utc;
 use serde::{Deserialize, Serialize};
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 use tauri::AppHandle;
-use tauri_plugin_storage::{Storage, StorageExt};
 use tokio::fs;
-use walkdir::WalkDir;
 
 pub struct StorageManager {
     app_handle: AppHandle,
@@ -19,8 +17,10 @@ impl StorageManager {
 
     // Project storage paths
     fn get_project_path(&self, project_id: &str) -> Result<PathBuf> {
-        let storage = self.app_handle.storage();
-        let base_path = storage.get_storage_path()?;
+        // For now, use a simple path in the app data directory
+        let base_path = std::env::var("HOME")
+            .map(|home| PathBuf::from(home).join(".launchapp"))
+            .unwrap_or_else(|_| PathBuf::from(".launchapp"));
         Ok(base_path.join("projects").join(project_id))
     }
 
@@ -103,8 +103,9 @@ impl StorageManager {
     }
 
     pub async fn list_projects(&self) -> Result<Vec<Project>> {
-        let storage = self.app_handle.storage();
-        let base_path = storage.get_storage_path()?;
+        let base_path = std::env::var("HOME")
+            .map(|home| PathBuf::from(home).join(".launchapp"))
+            .unwrap_or_else(|_| PathBuf::from(".launchapp"));
         let projects_path = base_path.join("projects");
 
         if !projects_path.exists() {
@@ -278,51 +279,6 @@ impl StorageManager {
         // Sort by updated_at descending
         documents.sort_by(|a, b| b.updated_at.cmp(&a.updated_at));
         Ok(documents)
-    }
-
-    // Attachment operations
-    pub async fn save_attachment(&self, project_id: &str, attachment: &TaskAttachment, data: &[u8]) -> Result<()> {
-        let attachment_path = self.get_attachment_path(project_id, &attachment.id, &attachment.filename)?;
-        
-        // Create directory if it doesn't exist
-        if let Some(parent) = attachment_path.parent() {
-            fs::create_dir_all(parent).await?;
-        }
-
-        fs::write(attachment_path, data).await?;
-        Ok(())
-    }
-
-    pub async fn load_attachment(&self, project_id: &str, attachment_id: &str, filename: &str) -> Result<Vec<u8>> {
-        let attachment_path = self.get_attachment_path(project_id, attachment_id, filename)?;
-        
-        if !attachment_path.exists() {
-            return Err(ProjectManagementError::IoError {
-                message: "Attachment file not found".to_string(),
-            });
-        }
-
-        let data = fs::read(attachment_path).await?;
-        Ok(data)
-    }
-
-    pub async fn delete_attachment(&self, project_id: &str, attachment_id: &str, filename: &str) -> Result<()> {
-        let attachment_path = self.get_attachment_path(project_id, attachment_id, filename)?;
-        
-        if attachment_path.exists() {
-            fs::remove_file(&attachment_path).await?;
-            
-            // Remove directory if empty
-            if let Some(parent) = attachment_path.parent() {
-                if let Ok(mut entries) = fs::read_dir(parent).await {
-                    if entries.next_entry().await?.is_none() {
-                        let _ = fs::remove_dir(parent).await;
-                    }
-                }
-            }
-        }
-
-        Ok(())
     }
 
     // Search operations

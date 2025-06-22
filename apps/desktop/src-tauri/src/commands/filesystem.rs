@@ -1,8 +1,8 @@
 use std::fs;
 use std::path::{Path, PathBuf};
-use notify::{Watcher, RecursiveMode, Event, Config};
+use notify::{Watcher, RecursiveMode, Event};
 use serde::{Deserialize, Serialize};
-use tauri::{AppHandle, Manager};
+use tauri::{AppHandle, Emitter};
 use std::sync::{Arc, Mutex};
 use std::collections::HashMap;
 use chrono::{DateTime, Utc};
@@ -441,7 +441,7 @@ pub async fn watch_directory(app: AppHandle, path: String) -> Result<(), String>
                     old_path: None,
                     timestamp: Utc::now(),
                 }),
-                notify::EventKind::Rename(_) => {
+                notify::EventKind::Modify(_) => {
                     if event.paths.len() >= 2 {
                         Some(FileWatchEvent {
                             event_type: "renamed".to_string(),
