@@ -1,0 +1,12 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "session-windows",
+  "description": "Capability for AI session windows",
+  "windows": ["session-*"],
+  "permissions": [
+    "core:default",
+    "core:event:default",
+    "dialog:default",
+    "window-manager:default"
+  ]
+}

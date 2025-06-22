@@ -11,6 +11,11 @@ out/
 *.tsbuildinfo
 .turbo/
 
+# Frontend build artifacts
+apps/desktop/dist/
+apps/desktop/node_modules/
+apps/desktop/*.tsbuildinfo
+
 # Tauri
 apps/desktop/src-tauri/target/
 apps/desktop/src-tauri/WixTools/

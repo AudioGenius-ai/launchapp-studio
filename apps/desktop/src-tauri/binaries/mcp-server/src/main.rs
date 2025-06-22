@@ -1,6 +1,6 @@
 use axum::{
     extract::{Path, State},
-    http::StatusCode,
+    http::{StatusCode, HeaderMap},
     response::{Json, sse::{Event, Sse}},
     routing::{get, post},
     Router,
@@ -114,6 +114,7 @@ async fn health_check(State(state): State<Arc<AppState>>) -> Json<HealthResponse
 
 async fn handle_mcp(
     State(_state): State<Arc<AppState>>,
+    headers: HeaderMap,
     Json(request): Json<JsonRpcRequest>,
 ) -> Json<JsonRpcResponse> {
     match request.method.as_str() {
@@ -146,18 +147,7 @@ async fn handle_mcp(
             })
         }
         "tools/call" => {
-            // In a real implementation, this would call back to Tauri
-            Json(JsonRpcResponse {
-                jsonrpc: "2.0".to_string(),
-                id: request.id,
-                result: Some(json!({
-                    "content": [{
-                        "type": "text",
-                        "text": "Tool execution would happen here"
-                    }]
-                })),
-                error: None,
-            })
+            handle_tool_call(headers, request).await
         }
         _ => {
             Json(JsonRpcResponse {

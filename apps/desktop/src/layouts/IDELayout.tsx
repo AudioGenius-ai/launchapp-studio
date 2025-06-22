@@ -7,7 +7,7 @@ import {
 } from 'react-resizable-panels';
 import { useLayoutStore } from './useLayoutStore';
 import { PanelManager } from './PanelManager';
-import { CompactThemeSwitcher } from '@code-pilot/ui';
+import { CompactThemeSwitcher } from '@code-pilot/themes';
 import { ChevronLeft, ChevronRight, Terminal, FileText, Search, GitBranch, Layout, Bot, PanelLeft, PanelBottom, PanelRight } from 'lucide-react';
 import './IDELayout.css';
 

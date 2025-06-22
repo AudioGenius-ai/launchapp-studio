@@ -25,8 +25,21 @@
     "paths": {
       "@code-pilot/core": ["../../packages/core/src"],
       "@code-pilot/ui": ["../../packages/ui/src"],
+      "@code-pilot/ui-kit": ["../../packages/ui-kit/src"],
       "@code-pilot/types": ["../../packages/types/src"],
-      "@code-pilot/utils": ["../../packages/utils/src"]
+      "@code-pilot/utils": ["../../packages/utils/src"],
+      "@code-pilot/services": ["../../packages/services/src"],
+      "@code-pilot/state": ["../../packages/state/src"],
+      "@code-pilot/router": ["../../packages/router/src"],
+      "@code-pilot/hooks": ["../../packages/hooks/src"],
+      "@code-pilot/themes": ["../../packages/themes/src"],
+      "@code-pilot/feature-editor": ["../../packages/features/editor/src"],
+      "@code-pilot/feature-terminal": ["../../packages/features/terminal/src"],
+      "@code-pilot/feature-git": ["../../packages/features/git/src"],
+      "@code-pilot/feature-ai": ["../../packages/features/ai/src"],
+      "@code-pilot/feature-projects": ["../../packages/features/projects/src"],
+      "@code-pilot/feature-templates": ["../../packages/features/templates/src"],
+      "@code-pilot/feature-window-management": ["../../packages/features/window-management/src"]
     }
   },
   "include": ["src"],
@@ -34,7 +47,20 @@
     { "path": "./tsconfig.node.json" },
     { "path": "../../packages/core" },
     { "path": "../../packages/ui" },
+    { "path": "../../packages/ui-kit" },
     { "path": "../../packages/types" },
-    { "path": "../../packages/utils" }
+    { "path": "../../packages/utils" },
+    { "path": "../../packages/services" },
+    { "path": "../../packages/state" },
+    { "path": "../../packages/router" },
+    { "path": "../../packages/hooks" },
+    { "path": "../../packages/themes" },
+    { "path": "../../packages/features/editor" },
+    { "path": "../../packages/features/terminal" },
+    { "path": "../../packages/features/git" },
+    { "path": "../../packages/features/ai" },
+    { "path": "../../packages/features/projects" },
+    { "path": "../../packages/features/templates" },
+    { "path": "../../packages/features/window-management" }
   ]
 }

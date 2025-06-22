@@ -429,6 +429,23 @@ pub async fn watch_directory(app: AppHandle, path: String) -> Result<(), String>
                     old_path: None,
                     timestamp: Utc::now(),
                 }),
+                notify::EventKind::Modify(notify::event::ModifyKind::Name(_)) => {
+                    if event.paths.len() >= 2 {
+                        Some(FileWatchEvent {
+                            event_type: "renamed".to_string(),
+                            path: event.paths[1].to_string_lossy().to_string(),
+                            old_path: Some(event.paths[0].to_string_lossy().to_string()),
+                            timestamp: Utc::now(),
+                        })
+                    } else {
+                        Some(FileWatchEvent {
+                            event_type: "modified".to_string(),
+                            path: event.paths.first().map(|p| p.to_string_lossy().to_string()).unwrap_or_default(),
+                            old_path: None,
+                            timestamp: Utc::now(),
+                        })
+                    }
+                },
                 notify::EventKind::Modify(_) => Some(FileWatchEvent {
                     event_type: "modified".to_string(),
                     path: event.paths.first().map(|p| p.to_string_lossy().to_string()).unwrap_or_default(),
