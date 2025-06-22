@@ -17,7 +17,6 @@
     "@code-pilot/core": "workspace:*",
     "@code-pilot/types": "workspace:*",
     "@code-pilot/ui": "workspace:*",
-    "@code-pilot/hooks": "workspace:*",
     "@code-pilot/feature-templates": "workspace:*",
     "@tauri-apps/api": "^2.1.1",
     "@tauri-apps/plugin-dialog": "^2.0.1",

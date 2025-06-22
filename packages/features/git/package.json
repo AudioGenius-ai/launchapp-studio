@@ -16,8 +16,6 @@
     "@code-pilot/types": "workspace:*",
     "@code-pilot/ui": "workspace:*",
     "@code-pilot/utils": "workspace:*",
-    "@code-pilot/hooks": "workspace:*",
-    "@code-pilot/state": "workspace:*",
     "@tauri-apps/api": "^2.0.0",
     "date-fns": "^3.0.0",
     "lucide-react": "^0.330.0",

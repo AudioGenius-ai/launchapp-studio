@@ -8,6 +8,7 @@ export * from './components/FileExplorer';
 export * from './components/Editor';
 export * from './components/TabManager';
 export * from './components/ThemeSwitcher';
+export { CompactThemeSwitcher } from './components/ThemeSwitcher';
 export * from './components/ThemeEditor';
 export * from './components/ThemeManager';
 

@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-complete-sprint"
+description = "Enables the complete_sprint command without any pre-configured scope."
+commands.allow = ["complete_sprint"]
+
+[[permission]]
+identifier = "deny-complete-sprint"
+description = "Denies the complete_sprint command without any pre-configured scope."
+commands.deny = ["complete_sprint"]

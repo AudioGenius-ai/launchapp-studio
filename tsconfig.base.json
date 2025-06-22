@@ -23,7 +23,8 @@
       "@code-pilot/core": ["./packages/core/src"],
       "@code-pilot/ui": ["./packages/ui/src"],
       "@code-pilot/types": ["./packages/types/src"],
-      "@code-pilot/utils": ["./packages/utils/src"]
+      "@code-pilot/utils": ["./packages/utils/src"],
+      "@code-pilot/features-project-management": ["./packages/features/project-management/src"]
     }
   },
   "exclude": ["node_modules", "dist", "build", ".turbo"]

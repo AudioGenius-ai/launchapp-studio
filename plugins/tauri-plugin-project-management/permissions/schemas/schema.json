@@ -1,0 +1,882 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "PermissionFile",
+  "description": "Permission file that can define a default permission, a set of permissions or a list of inlined permissions.",
+  "type": "object",
+  "properties": {
+    "default": {
+      "description": "The default permission set for the plugin",
+      "anyOf": [
+        {
+          "$ref": "#/definitions/DefaultPermission"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "set": {
+      "description": "A list of permissions sets defined",
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/PermissionSet"
+      }
+    },
+    "permission": {
+      "description": "A list of inlined permissions",
+      "default": [],
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/Permission"
+      }
+    }
+  },
+  "definitions": {
+    "DefaultPermission": {
+      "description": "The default permission set of the plugin.\n\nWorks similarly to a permission with the \"default\" identifier.",
+      "type": "object",
+      "required": [
+        "permissions"
+      ],
+      "properties": {
+        "version": {
+          "description": "The version of the permission.",
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "uint64",
+          "minimum": 1.0
+        },
+        "description": {
+          "description": "Human-readable description of what the permission does. Tauri convention is to use `<h4>` headings in markdown content for Tauri documentation generation purposes.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "permissions": {
+          "description": "All permissions this set contains.",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "PermissionSet": {
+      "description": "A set of direct permissions grouped together under a new name.",
+      "type": "object",
+      "required": [
+        "description",
+        "identifier",
+        "permissions"
+      ],
+      "properties": {
+        "identifier": {
+          "description": "A unique identifier for the permission.",
+          "type": "string"
+        },
+        "description": {
+          "description": "Human-readable description of what the permission does.",
+          "type": "string"
+        },
+        "permissions": {
+          "description": "All permissions this set contains.",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/PermissionKind"
+          }
+        }
+      }
+    },
+    "Permission": {
+      "description": "Descriptions of explicit privileges of commands.\n\nIt can enable commands to be accessible in the frontend of the application.\n\nIf the scope is defined it can be used to fine grain control the access of individual or multiple commands.",
+      "type": "object",
+      "required": [
+        "identifier"
+      ],
+      "properties": {
+        "version": {
+          "description": "The version of the permission.",
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "uint64",
+          "minimum": 1.0
+        },
+        "identifier": {
+          "description": "A unique identifier for the permission.",
+          "type": "string"
+        },
+        "description": {
+          "description": "Human-readable description of what the permission does. Tauri internal convention is to use `<h4>` headings in markdown content for Tauri documentation generation purposes.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "commands": {
+          "description": "Allowed or denied commands when using this permission.",
+          "default": {
+            "allow": [],
+            "deny": []
+          },
+          "allOf": [
+            {
+              "$ref": "#/definitions/Commands"
+            }
+          ]
+        },
+        "scope": {
+          "description": "Allowed or denied scoped when using this permission.",
+          "allOf": [
+            {
+              "$ref": "#/definitions/Scopes"
+            }
+          ]
+        },
+        "platforms": {
+          "description": "Target platforms this permission applies. By default all platforms are affected by this permission.",
+          "type": [
+            "array",
+            "null"
+          ],
+          "items": {
+            "$ref": "#/definitions/Target"
+          }
+        }
+      }
+    },
+    "Commands": {
+      "description": "Allowed and denied commands inside a permission.\n\nIf two commands clash inside of `allow` and `deny`, it should be denied by default.",
+      "type": "object",
+      "properties": {
+        "allow": {
+          "description": "Allowed command.",
+          "default": [],
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "deny": {
+          "description": "Denied command, which takes priority.",
+          "default": [],
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "Scopes": {
+      "description": "An argument for fine grained behavior control of Tauri commands.\n\nIt can be of any serde serializable type and is used to allow or prevent certain actions inside a Tauri command. The configured scope is passed to the command and will be enforced by the command implementation.\n\n## Example\n\n```json { \"allow\": [{ \"path\": \"$HOME/**\" }], \"deny\": [{ \"path\": \"$HOME/secret.txt\" }] } ```",
+      "type": "object",
+      "properties": {
+        "allow": {
+          "description": "Data that defines what is allowed by the scope.",
+          "type": [
+            "array",
+            "null"
+          ],
+          "items": {
+            "$ref": "#/definitions/Value"
+          }
+        },
+        "deny": {
+          "description": "Data that defines what is denied by the scope. This should be prioritized by validation logic.",
+          "type": [
+            "array",
+            "null"
+          ],
+          "items": {
+            "$ref": "#/definitions/Value"
+          }
+        }
+      }
+    },
+    "Value": {
+      "description": "All supported ACL values.",
+      "anyOf": [
+        {
+          "description": "Represents a null JSON value.",
+          "type": "null"
+        },
+        {
+          "description": "Represents a [`bool`].",
+          "type": "boolean"
+        },
+        {
+          "description": "Represents a valid ACL [`Number`].",
+          "allOf": [
+            {
+              "$ref": "#/definitions/Number"
+            }
+          ]
+        },
+        {
+          "description": "Represents a [`String`].",
+          "type": "string"
+        },
+        {
+          "description": "Represents a list of other [`Value`]s.",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Value"
+          }
+        },
+        {
+          "description": "Represents a map of [`String`] keys to [`Value`]s.",
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/Value"
+          }
+        }
+      ]
+    },
+    "Number": {
+      "description": "A valid ACL number.",
+      "anyOf": [
+        {
+          "description": "Represents an [`i64`].",
+          "type": "integer",
+          "format": "int64"
+        },
+        {
+          "description": "Represents a [`f64`].",
+          "type": "number",
+          "format": "double"
+        }
+      ]
+    },
+    "Target": {
+      "description": "Platform target.",
+      "oneOf": [
+        {
+          "description": "MacOS.",
+          "type": "string",
+          "enum": [
+            "macOS"
+          ]
+        },
+        {
+          "description": "Windows.",
+          "type": "string",
+          "enum": [
+            "windows"
+          ]
+        },
+        {
+          "description": "Linux.",
+          "type": "string",
+          "enum": [
+            "linux"
+          ]
+        },
+        {
+          "description": "Android.",
+          "type": "string",
+          "enum": [
+            "android"
+          ]
+        },
+        {
+          "description": "iOS.",
+          "type": "string",
+          "enum": [
+            "iOS"
+          ]
+        }
+      ]
+    },
+    "PermissionKind": {
+      "type": "string",
+      "oneOf": [
+        {
+          "description": "Enables the add_project_member command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-add-project-member",
+          "markdownDescription": "Enables the add_project_member command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the add_project_member command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-add-project-member",
+          "markdownDescription": "Denies the add_project_member command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the add_task_comment command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-add-task-comment",
+          "markdownDescription": "Enables the add_task_comment command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the add_task_comment command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-add-task-comment",
+          "markdownDescription": "Denies the add_task_comment command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the add_task_to_sprint command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-add-task-to-sprint",
+          "markdownDescription": "Enables the add_task_to_sprint command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the add_task_to_sprint command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-add-task-to-sprint",
+          "markdownDescription": "Denies the add_task_to_sprint command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the bulk_update_tasks command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-bulk-update-tasks",
+          "markdownDescription": "Enables the bulk_update_tasks command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the bulk_update_tasks command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-bulk-update-tasks",
+          "markdownDescription": "Denies the bulk_update_tasks command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the complete_sprint command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-complete-sprint",
+          "markdownDescription": "Enables the complete_sprint command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the complete_sprint command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-complete-sprint",
+          "markdownDescription": "Denies the complete_sprint command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the create_document command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-create-document",
+          "markdownDescription": "Enables the create_document command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the create_document command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-create-document",
+          "markdownDescription": "Denies the create_document command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the create_document_from_template command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-create-document-from-template",
+          "markdownDescription": "Enables the create_document_from_template command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the create_document_from_template command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-create-document-from-template",
+          "markdownDescription": "Denies the create_document_from_template command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the create_project command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-create-project",
+          "markdownDescription": "Enables the create_project command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the create_project command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-create-project",
+          "markdownDescription": "Denies the create_project command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the create_sprint command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-create-sprint",
+          "markdownDescription": "Enables the create_sprint command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the create_sprint command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-create-sprint",
+          "markdownDescription": "Denies the create_sprint command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the create_task command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-create-task",
+          "markdownDescription": "Enables the create_task command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the create_task command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-create-task",
+          "markdownDescription": "Denies the create_task command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the delete_document command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-delete-document",
+          "markdownDescription": "Enables the delete_document command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the delete_document command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-delete-document",
+          "markdownDescription": "Denies the delete_document command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the delete_project command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-delete-project",
+          "markdownDescription": "Enables the delete_project command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the delete_project command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-delete-project",
+          "markdownDescription": "Denies the delete_project command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the delete_sprint command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-delete-sprint",
+          "markdownDescription": "Enables the delete_sprint command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the delete_sprint command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-delete-sprint",
+          "markdownDescription": "Denies the delete_sprint command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the delete_task command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-delete-task",
+          "markdownDescription": "Enables the delete_task command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the delete_task command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-delete-task",
+          "markdownDescription": "Denies the delete_task command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the export_document command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-export-document",
+          "markdownDescription": "Enables the export_document command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the export_document command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-export-document",
+          "markdownDescription": "Denies the export_document command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the export_project command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-export-project",
+          "markdownDescription": "Enables the export_project command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the export_project command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-export-project",
+          "markdownDescription": "Denies the export_project command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the get_document command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-get-document",
+          "markdownDescription": "Enables the get_document command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the get_document command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-get-document",
+          "markdownDescription": "Denies the get_document command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the get_document_history command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-get-document-history",
+          "markdownDescription": "Enables the get_document_history command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the get_document_history command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-get-document-history",
+          "markdownDescription": "Denies the get_document_history command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the get_document_templates command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-get-document-templates",
+          "markdownDescription": "Enables the get_document_templates command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the get_document_templates command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-get-document-templates",
+          "markdownDescription": "Denies the get_document_templates command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the get_project command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-get-project",
+          "markdownDescription": "Enables the get_project command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the get_project command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-get-project",
+          "markdownDescription": "Denies the get_project command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the get_project_settings command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-get-project-settings",
+          "markdownDescription": "Enables the get_project_settings command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the get_project_settings command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-get-project-settings",
+          "markdownDescription": "Denies the get_project_settings command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the get_project_statistics command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-get-project-statistics",
+          "markdownDescription": "Enables the get_project_statistics command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the get_project_statistics command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-get-project-statistics",
+          "markdownDescription": "Denies the get_project_statistics command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the get_sprint command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-get-sprint",
+          "markdownDescription": "Enables the get_sprint command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the get_sprint command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-get-sprint",
+          "markdownDescription": "Denies the get_sprint command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the get_sprint_report command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-get-sprint-report",
+          "markdownDescription": "Enables the get_sprint_report command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the get_sprint_report command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-get-sprint-report",
+          "markdownDescription": "Denies the get_sprint_report command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the get_task command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-get-task",
+          "markdownDescription": "Enables the get_task command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the get_task command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-get-task",
+          "markdownDescription": "Denies the get_task command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the get_task_history command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-get-task-history",
+          "markdownDescription": "Enables the get_task_history command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the get_task_history command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-get-task-history",
+          "markdownDescription": "Denies the get_task_history command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the import_project command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-import-project",
+          "markdownDescription": "Enables the import_project command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the import_project command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-import-project",
+          "markdownDescription": "Denies the import_project command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the list_documents command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-list-documents",
+          "markdownDescription": "Enables the list_documents command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the list_documents command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-list-documents",
+          "markdownDescription": "Denies the list_documents command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the list_projects command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-list-projects",
+          "markdownDescription": "Enables the list_projects command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the list_projects command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-list-projects",
+          "markdownDescription": "Denies the list_projects command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the list_sprints command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-list-sprints",
+          "markdownDescription": "Enables the list_sprints command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the list_sprints command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-list-sprints",
+          "markdownDescription": "Denies the list_sprints command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the list_tasks command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-list-tasks",
+          "markdownDescription": "Enables the list_tasks command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the list_tasks command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-list-tasks",
+          "markdownDescription": "Denies the list_tasks command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the move_task_to_sprint command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-move-task-to-sprint",
+          "markdownDescription": "Enables the move_task_to_sprint command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the move_task_to_sprint command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-move-task-to-sprint",
+          "markdownDescription": "Denies the move_task_to_sprint command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the remove_project_member command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-remove-project-member",
+          "markdownDescription": "Enables the remove_project_member command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the remove_project_member command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-remove-project-member",
+          "markdownDescription": "Denies the remove_project_member command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the remove_task_attachment command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-remove-task-attachment",
+          "markdownDescription": "Enables the remove_task_attachment command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the remove_task_attachment command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-remove-task-attachment",
+          "markdownDescription": "Denies the remove_task_attachment command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the remove_task_comment command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-remove-task-comment",
+          "markdownDescription": "Enables the remove_task_comment command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the remove_task_comment command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-remove-task-comment",
+          "markdownDescription": "Denies the remove_task_comment command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the remove_task_from_sprint command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-remove-task-from-sprint",
+          "markdownDescription": "Enables the remove_task_from_sprint command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the remove_task_from_sprint command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-remove-task-from-sprint",
+          "markdownDescription": "Denies the remove_task_from_sprint command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the render_document command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-render-document",
+          "markdownDescription": "Enables the render_document command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the render_document command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-render-document",
+          "markdownDescription": "Denies the render_document command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the search_all command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-search-all",
+          "markdownDescription": "Enables the search_all command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the search_all command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-search-all",
+          "markdownDescription": "Denies the search_all command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the search_documents command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-search-documents",
+          "markdownDescription": "Enables the search_documents command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the search_documents command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-search-documents",
+          "markdownDescription": "Denies the search_documents command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the search_tasks command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-search-tasks",
+          "markdownDescription": "Enables the search_tasks command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the search_tasks command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-search-tasks",
+          "markdownDescription": "Denies the search_tasks command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the start_sprint command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-start-sprint",
+          "markdownDescription": "Enables the start_sprint command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the start_sprint command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-start-sprint",
+          "markdownDescription": "Denies the start_sprint command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the update_document command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-update-document",
+          "markdownDescription": "Enables the update_document command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the update_document command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-update-document",
+          "markdownDescription": "Denies the update_document command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the update_project command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-update-project",
+          "markdownDescription": "Enables the update_project command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the update_project command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-update-project",
+          "markdownDescription": "Denies the update_project command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the update_project_settings command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-update-project-settings",
+          "markdownDescription": "Enables the update_project_settings command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the update_project_settings command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-update-project-settings",
+          "markdownDescription": "Denies the update_project_settings command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the update_sprint command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-update-sprint",
+          "markdownDescription": "Enables the update_sprint command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the update_sprint command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-update-sprint",
+          "markdownDescription": "Denies the update_sprint command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the update_task command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-update-task",
+          "markdownDescription": "Enables the update_task command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the update_task command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-update-task",
+          "markdownDescription": "Denies the update_task command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the upload_task_attachment command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-upload-task-attachment",
+          "markdownDescription": "Enables the upload_task_attachment command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the upload_task_attachment command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-upload-task-attachment",
+          "markdownDescription": "Denies the upload_task_attachment command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the validate_project_data command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-validate-project-data",
+          "markdownDescription": "Enables the validate_project_data command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the validate_project_data command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-validate-project-data",
+          "markdownDescription": "Denies the validate_project_data command without any pre-configured scope."
+        },
+        {
+          "description": "Default permissions for the project management plugin\n#### This default permission set includes:\n\n- `allow-create-project`\n- `allow-get-project`\n- `allow-update-project`\n- `allow-delete-project`\n- `allow-list-projects`\n- `allow-add-project-member`\n- `allow-remove-project-member`\n- `allow-get-project-settings`\n- `allow-update-project-settings`\n- `allow-create-task`\n- `allow-get-task`\n- `allow-update-task`\n- `allow-delete-task`\n- `allow-list-tasks`\n- `allow-search-tasks`\n- `allow-move-task-to-sprint`\n- `allow-add-task-comment`\n- `allow-remove-task-comment`\n- `allow-upload-task-attachment`\n- `allow-remove-task-attachment`\n- `allow-get-task-history`\n- `allow-bulk-update-tasks`\n- `allow-create-sprint`\n- `allow-get-sprint`\n- `allow-update-sprint`\n- `allow-delete-sprint`\n- `allow-list-sprints`\n- `allow-start-sprint`\n- `allow-complete-sprint`\n- `allow-get-sprint-report`\n- `allow-add-task-to-sprint`\n- `allow-remove-task-from-sprint`\n- `allow-create-document`\n- `allow-get-document`\n- `allow-update-document`\n- `allow-delete-document`\n- `allow-list-documents`\n- `allow-search-documents`\n- `allow-get-document-history`\n- `allow-render-document`\n- `allow-create-document-from-template`\n- `allow-get-document-templates`\n- `allow-export-document`\n- `allow-get-project-statistics`\n- `allow-search-all`\n- `allow-export-project`\n- `allow-import-project`\n- `allow-validate-project-data`",
+          "type": "string",
+          "const": "default",
+          "markdownDescription": "Default permissions for the project management plugin\n#### This default permission set includes:\n\n- `allow-create-project`\n- `allow-get-project`\n- `allow-update-project`\n- `allow-delete-project`\n- `allow-list-projects`\n- `allow-add-project-member`\n- `allow-remove-project-member`\n- `allow-get-project-settings`\n- `allow-update-project-settings`\n- `allow-create-task`\n- `allow-get-task`\n- `allow-update-task`\n- `allow-delete-task`\n- `allow-list-tasks`\n- `allow-search-tasks`\n- `allow-move-task-to-sprint`\n- `allow-add-task-comment`\n- `allow-remove-task-comment`\n- `allow-upload-task-attachment`\n- `allow-remove-task-attachment`\n- `allow-get-task-history`\n- `allow-bulk-update-tasks`\n- `allow-create-sprint`\n- `allow-get-sprint`\n- `allow-update-sprint`\n- `allow-delete-sprint`\n- `allow-list-sprints`\n- `allow-start-sprint`\n- `allow-complete-sprint`\n- `allow-get-sprint-report`\n- `allow-add-task-to-sprint`\n- `allow-remove-task-from-sprint`\n- `allow-create-document`\n- `allow-get-document`\n- `allow-update-document`\n- `allow-delete-document`\n- `allow-list-documents`\n- `allow-search-documents`\n- `allow-get-document-history`\n- `allow-render-document`\n- `allow-create-document-from-template`\n- `allow-get-document-templates`\n- `allow-export-document`\n- `allow-get-project-statistics`\n- `allow-search-all`\n- `allow-export-project`\n- `allow-import-project`\n- `allow-validate-project-data`"
+        }
+      ]
+    }
+  }
+}

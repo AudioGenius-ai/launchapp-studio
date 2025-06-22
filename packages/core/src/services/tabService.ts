@@ -4,7 +4,6 @@ import {
   TabManagerState,
   TabManagerConfiguration,
   TabManagerEvents,
-  TabDragData,
   RecentlyClosedTab,
   TabSessionData,
   TabKeyboardShortcut,
@@ -68,7 +67,7 @@ export class TabService {
     if (!group) return;
     
     // Open file through editor service
-    const file = await this.editorService.openFile(path);
+    await this.editorService.openFile(path);
     const editorTabs = this.editorService.getTabs();
     const tab = editorTabs.find(t => t.path === path);
     
@@ -517,7 +516,7 @@ export class TabService {
       {
         id: 'closeAll',
         label: 'Close All',
-        action: (tabId, groupId) => this.closeAllTabsInGroup(groupId)
+        action: (_tabId, groupId) => this.closeAllTabsInGroup(groupId)
       },
       {
         id: 'separator1',
@@ -683,7 +682,7 @@ export class TabService {
       }
     });
     
-    this.editorService.on('tabsReordered', ({ fromIndex, toIndex }) => {
+    this.editorService.on('tabsReordered', ({ fromIndex: _fromIndex, toIndex: _toIndex }: { fromIndex: number, toIndex: number }) => {
       // Update tab order in the active group
       const group = this.state.groups.get(this.state.activeGroupId!);
       if (group) {

@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-get-sprint-report"
+description = "Enables the get_sprint_report command without any pre-configured scope."
+commands.allow = ["get_sprint_report"]
+
+[[permission]]
+identifier = "deny-get-sprint-report"
+description = "Denies the get_sprint_report command without any pre-configured scope."
+commands.deny = ["get_sprint_report"]

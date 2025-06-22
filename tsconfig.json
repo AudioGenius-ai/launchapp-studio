@@ -5,6 +5,7 @@
     { "path": "./packages/ui" },
     { "path": "./packages/types" },
     { "path": "./packages/utils" },
+    { "path": "./packages/features/project-management" },
     { "path": "./apps/desktop" }
   ],
   "files": []

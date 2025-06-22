@@ -12,8 +12,7 @@ pub async fn create_project_window(
         return Ok(());
     }
     
-    app_handle
-        .webview_window_builder(&window_label)
+    tauri::WebviewWindowBuilder::new(&app_handle, &window_label, tauri::WebviewUrl::App("index.html".into()))
         .title(format!("Code Pilot - Project {}", project_id))
         .inner_size(1200.0, 800.0)
         .build()

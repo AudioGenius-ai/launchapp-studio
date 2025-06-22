@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-move-task-to-sprint"
+description = "Enables the move_task_to_sprint command without any pre-configured scope."
+commands.allow = ["move_task_to_sprint"]
+
+[[permission]]
+identifier = "deny-move-task-to-sprint"
+description = "Denies the move_task_to_sprint command without any pre-configured scope."
+commands.deny = ["move_task_to_sprint"]

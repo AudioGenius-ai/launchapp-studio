@@ -1,5 +1,5 @@
 use std::fs;
-use std::path::{Path, PathBuf};
+use std::path::Path;
 use notify::{Watcher, RecursiveMode, Event};
 use serde::{Deserialize, Serialize};
 use tauri::{AppHandle, Emitter};
@@ -441,18 +441,6 @@ pub async fn watch_directory(app: AppHandle, path: String) -> Result<(), String>
                     old_path: None,
                     timestamp: Utc::now(),
                 }),
-                notify::EventKind::Modify(_) => {
-                    if event.paths.len() >= 2 {
-                        Some(FileWatchEvent {
-                            event_type: "renamed".to_string(),
-                            path: event.paths[1].to_string_lossy().to_string(),
-                            old_path: Some(event.paths[0].to_string_lossy().to_string()),
-                            timestamp: Utc::now(),
-                        })
-                    } else {
-                        None
-                    }
-                },
                 _ => None,
             };
             

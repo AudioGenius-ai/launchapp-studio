@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-add-project-member"
+description = "Enables the add_project_member command without any pre-configured scope."
+commands.allow = ["add_project_member"]
+
+[[permission]]
+identifier = "deny-add-project-member"
+description = "Denies the add_project_member command without any pre-configured scope."
+commands.deny = ["add_project_member"]

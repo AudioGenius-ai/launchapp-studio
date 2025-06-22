@@ -1,7 +1,5 @@
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
 use std::process::Command;
-use std::path::Path;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ProjectTemplate {
@@ -104,7 +102,7 @@ pub async fn check_command_availability(command: String) -> Result<bool, String>
 
 #[tauri::command]
 pub async fn check_prerequisite(prerequisite: String) -> Result<bool, String> {
-    let commands = match prerequisite.as_str() {
+    let commands: Vec<&str> = match prerequisite.as_str() {
         "node" => vec!["node"],
         "npm" => vec!["npm"],
         "yarn" => vec!["yarn"],
@@ -112,7 +110,7 @@ pub async fn check_prerequisite(prerequisite: String) -> Result<bool, String> {
         "rust" => vec!["rustc", "cargo"],
         "python" => vec!["python", "python3"],
         "git" => vec!["git"],
-        _ => vec![&prerequisite],
+        _ => vec![prerequisite.as_str()],
     };
     
     for cmd in commands {
@@ -149,7 +147,7 @@ pub async fn execute_template_command(
 
 #[tauri::command]
 pub async fn save_custom_template(
-    template: CustomTemplate,
+    _template: CustomTemplate,
 ) -> Result<(), String> {
     // TODO: Save to storage
     Ok(())
@@ -157,7 +155,7 @@ pub async fn save_custom_template(
 
 #[tauri::command]
 pub async fn remove_custom_template(
-    template_id: String,
+    _template_id: String,
 ) -> Result<(), String> {
     // TODO: Remove from storage
     Ok(())
@@ -165,7 +163,7 @@ pub async fn remove_custom_template(
 
 #[tauri::command]
 pub async fn import_template_from_url(
-    url: String,
+    _url: String,
 ) -> Result<CustomTemplate, String> {
     // TODO: Import template from URL
     Err("Not implemented".to_string())
