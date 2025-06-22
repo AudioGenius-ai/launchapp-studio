@@ -1,0 +1,37 @@
+{
+  "name": "@code-pilot/feature-editor",
+  "version": "0.0.1",
+  "description": "Code editor feature module for Code Pilot Studio",
+  "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc -w",
+    "clean": "rm -rf dist",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@code-pilot/core": "workspace:*",
+    "@code-pilot/hooks": "workspace:*",
+    "@code-pilot/types": "workspace:*",
+    "@code-pilot/ui": "workspace:*",
+    "@monaco-editor/react": "^4.6.0",
+    "@tauri-apps/api": "^2",
+    "clsx": "^2.1.1",
+    "lucide-react": "^0.518.0",
+    "monaco-editor": "^0.52.0",
+    "react": "^19.0.0",
+    "tailwind-merge": "^3.3.1",
+    "zustand": "^5.0.2"
+  },
+  "devDependencies": {
+    "@types/react": "^19.0.2",
+    "typescript": "^5.7.2"
+  },
+  "peerDependencies": {
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  }
+}

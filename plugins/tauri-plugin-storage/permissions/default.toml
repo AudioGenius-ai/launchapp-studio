@@ -1,0 +1,58 @@
+[[permission]]
+identifier = "allow-set-item"
+description = "Allows setting items in storage"
+commands.allow = ["set_item"]
+
+[[permission]]
+identifier = "allow-get-item"
+description = "Allows getting items from storage"
+commands.allow = ["get_item"]
+
+[[permission]]
+identifier = "allow-remove-item"
+description = "Allows removing items from storage"
+commands.allow = ["remove_item"]
+
+[[permission]]
+identifier = "allow-clear"
+description = "Allows clearing storage"
+commands.allow = ["clear"]
+
+[[permission]]
+identifier = "allow-list-keys"
+description = "Allows listing storage keys"
+commands.allow = ["list_keys"]
+
+[[permission]]
+identifier = "allow-encrypted-operations"
+description = "Allows encrypted storage operations"
+commands.allow = ["set_encrypted_item", "get_encrypted_item"]
+
+[[permission]]
+identifier = "allow-storage-management"
+description = "Allows managing storage settings"
+commands.allow = ["set_storage_path", "get_storage_path", "exists", "get_storage_info"]
+
+[[permission]]
+identifier = "default"
+description = "Default permissions for storage plugin"
+permissions = [
+    "allow-set-item",
+    "allow-get-item",
+    "allow-remove-item",
+    "allow-list-keys",
+    "allow-storage-management"
+]
+
+[[permission]]
+identifier = "allow-all"
+description = "Allows all storage operations including encryption"
+permissions = [
+    "allow-set-item",
+    "allow-get-item",
+    "allow-remove-item",
+    "allow-clear",
+    "allow-list-keys",
+    "allow-encrypted-operations",
+    "allow-storage-management"
+]

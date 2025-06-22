@@ -1,0 +1,28 @@
+[package]
+name = "tauri-plugin-storage"
+version = "0.1.0"
+authors = ["Code Pilot Studio"]
+edition = "2021"
+rust-version = "1.70"
+links = "tauri-plugin-storage"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+tauri = { version = "2.0.0", features = ["rustls-tls"] }
+tauri-plugin = "2.0.0"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+tokio = { version = "1", features = ["full"] }
+log = "0.4"
+thiserror = "1"
+base64 = "0.22"
+directories = "5.0"
+aes-gcm = "0.10"
+argon2 = "0.5"
+rand = "0.8"
+zeroize = { version = "1.8", features = ["derive"] }
+
+[build-dependencies]
+tauri-plugin = { version = "2.0.0", features = ["build"] }

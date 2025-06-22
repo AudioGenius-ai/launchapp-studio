@@ -57,3 +57,22 @@ Thumbs.db
 *.temp
 .tmp/
 .temp/
+
+# TypeScript build artifacts
+*.d.ts
+*.d.ts.map
+*.js.map
+packages/*/src/**/*.js
+packages/*/src/**/*.d.ts
+packages/*/src/**/*.d.ts.map
+
+# Rust build artifacts
+**/target/
+**/Cargo.lock
+!apps/desktop/src-tauri/Cargo.lock
+
+# IDE history
+.history/
+
+# MCP sidecar ports
+.sidecar-port

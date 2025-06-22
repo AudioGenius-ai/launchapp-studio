@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-recover-sessions"
+description = "Enables the recover_sessions command without any pre-configured scope."
+commands.allow = ["recover_sessions"]
+
+[[permission]]
+identifier = "deny-recover-sessions"
+description = "Denies the recover_sessions command without any pre-configured scope."
+commands.deny = ["recover_sessions"]

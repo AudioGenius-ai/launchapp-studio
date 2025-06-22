@@ -1,0 +1,31 @@
+[package]
+name = "tauri-plugin-claude"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.70"
+authors = ["Code Pilot Studio"]
+description = "Claude CLI integration plugin for Tauri"
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/code-pilot-studio/launchapp-studio-ide"
+links = "tauri-plugin-claude"
+
+[dependencies]
+tauri = { version = "2", features = [] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+tokio = { version = "1", features = ["full"] }
+futures = "0.3"
+anyhow = "1.0"
+crossbeam-channel = "0.5"
+uuid = { version = "1", features = ["v4", "serde"] }
+chrono = { version = "0.4", features = ["serde"] }
+notify = "6.1"
+lazy_static = "1.4"
+dirs = "5.0"
+which = "6.0"
+schemars = "0.8"
+thiserror = "1"
+
+[build-dependencies]
+tauri-plugin = { version = "2", features = ["build"] }
+schemars = "0.8"

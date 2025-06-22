@@ -1,0 +1,19 @@
+[default]
+description = "Default permissions for the window manager plugin"
+permissions = [
+    "allow-create-window",
+    "allow-close-window",
+    "allow-get-window",
+    "allow-list-windows",
+    "allow-focus-window",
+    "allow-minimize-window",
+    "allow-maximize-window",
+    "allow-unmaximize-window",
+    "allow-set-window-position",
+    "allow-set-window-size",
+    "allow-set-window-title",
+    "allow-send-message",
+    "allow-broadcast-message",
+    "allow-get-window-state",
+    "allow-update-window-info"
+]

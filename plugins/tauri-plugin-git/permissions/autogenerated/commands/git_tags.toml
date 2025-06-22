@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-git-tags"
+description = "Enables the git_tags command without any pre-configured scope."
+commands.allow = ["git_tags"]
+
+[[permission]]
+identifier = "deny-git-tags"
+description = "Denies the git_tags command without any pre-configured scope."
+commands.deny = ["git_tags"]

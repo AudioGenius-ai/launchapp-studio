@@ -1,0 +1,6 @@
+[window-messaging]
+description = "Permissions for inter-window messaging"
+permissions = [
+    "allow-send-message",
+    "allow-broadcast-message"
+]

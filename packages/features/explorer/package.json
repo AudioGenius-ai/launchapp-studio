@@ -1,0 +1,36 @@
+{
+  "name": "@code-pilot/feature-explorer",
+  "version": "1.0.0",
+  "description": "Explorer, search, and problems panels for Code Pilot Studio",
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "clean": "rm -rf dist",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@code-pilot/core": "workspace:*",
+    "@code-pilot/types": "workspace:*",
+    "@code-pilot/ui": "workspace:*",
+    "@tauri-apps/api": "2.0.3",
+    "lucide-react": "^0.344.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "tsup": "^8.0.2",
+    "typescript": "^5.3.3"
+  },
+  "peerDependencies": {
+    "react": ">=19.0.0",
+    "react-dom": ">=19.0.0"
+  }
+}

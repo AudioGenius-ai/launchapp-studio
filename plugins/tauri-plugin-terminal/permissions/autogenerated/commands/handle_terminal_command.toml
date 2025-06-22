@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-handle-terminal-command"
+description = "Enables the handle_terminal_command command without any pre-configured scope."
+commands.allow = ["handle_terminal_command"]
+
+[[permission]]
+identifier = "deny-handle-terminal-command"
+description = "Denies the handle_terminal_command command without any pre-configured scope."
+commands.deny = ["handle_terminal_command"]

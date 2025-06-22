@@ -1,0 +1,10 @@
+[default]
+description = "Default permissions for the MCP webserver plugin"
+permissions = [
+  "allow-start-server",
+  "allow-stop-server",
+  "allow-list-instances",
+  "allow-get-instance",
+  "allow-call-tool",
+  "allow-get-tools"
+]

@@ -1,0 +1,16 @@
+{
+  "name": "@tauri-apps/plugin-window-manager-api",
+  "version": "0.1.0",
+  "description": "TypeScript bindings for the Tauri window manager plugin",
+  "main": "index.ts",
+  "types": "index.ts",
+  "scripts": {
+    "build": "tsc"
+  },
+  "dependencies": {
+    "@tauri-apps/api": ">=2.0.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0"
+  }
+}

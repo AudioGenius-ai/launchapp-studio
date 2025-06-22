@@ -1,0 +1,13 @@
+{
+  "name": "tauri-plugin-storage",
+  "version": "0.1.0",
+  "description": "File-based storage plugin for Tauri with encryption support",
+  "private": true,
+  "scripts": {
+    "build": "cargo build && cd guest-js && pnpm build",
+    "build:release": "cargo build --release && cd guest-js && pnpm build",
+    "build:permissions": "cargo build --features tauri/custom-protocol",
+    "dev": "cd guest-js && pnpm dev",
+    "typecheck": "cd guest-js && pnpm typecheck"
+  }
+}

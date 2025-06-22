@@ -1,8 +1,8 @@
 /* Import Tailwind CSS v4 */
 @import "tailwindcss";
 
-/* Import theme CSS variables */
-@import "@code-pilot/ui/src/styles/theme.css";
+/* Import all UI styles (includes variables, base, theme, components) */
+@import "@code-pilot/ui/src/styles/index.css";
 
 /* Global styles */
 * {
@@ -33,4 +33,9 @@ html, body, #root {
     opacity: 1;
     transform: translate(-50%, -50%) scale(1);
   }
+}
+
+/* Animation utilities */
+.animation-delay-2000 {
+  animation-delay: 2s;
 }

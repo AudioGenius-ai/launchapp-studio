@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-get-window"
+description = "Enables the get_window command without any pre-configured scope."
+commands.allow = ["get_window"]
+
+[[permission]]
+identifier = "deny-get-window"
+description = "Denies the get_window command without any pre-configured scope."
+commands.deny = ["get_window"]

@@ -1,0 +1,9 @@
+[window-lifecycle]
+description = "Permissions for window lifecycle operations"
+permissions = [
+    "allow-create-window",
+    "allow-close-window",
+    "allow-get-window",
+    "allow-list-windows",
+    "allow-get-window-state"
+]

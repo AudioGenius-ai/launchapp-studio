@@ -1,0 +1,28 @@
+{
+  "name": "@code-pilot/plugin-git",
+  "version": "0.1.0",
+  "description": "Git integration plugin for Tauri",
+  "main": "./dist-js/index.js",
+  "types": "./dist-js/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "tauri",
+    "plugin",
+    "git"
+  ],
+  "author": "Code Pilot Studio",
+  "license": "MIT OR Apache-2.0",
+  "peerDependencies": {
+    "@tauri-apps/api": "^2.0.0"
+  },
+  "dependencies": {
+    "@code-pilot/types": "workspace:^"
+  },
+  "devDependencies": {
+    "@tauri-apps/api": "^2.0.0",
+    "typescript": "^5.3.3"
+  }
+}

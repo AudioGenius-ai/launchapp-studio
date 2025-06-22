@@ -1,0 +1,18 @@
+{
+  "extends": "../../../tsconfig.base.json",
+  "compilerOptions": {
+    "rootDir": "./src",
+    "outDir": "./dist",
+    "jsx": "react-jsx",
+    "tsBuildInfoFile": "./dist/.tsbuildinfo"
+  },
+  "include": ["src"],
+  "references": [
+    { "path": "../../core" },
+    { "path": "../../hooks" },
+    { "path": "../../types" },
+    { "path": "../../ui" },
+    { "path": "../../ui-kit" },
+    { "path": "../../utils" }
+  ]
+}

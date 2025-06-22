@@ -1,0 +1,44 @@
+[package]
+name = "tauri-plugin-project-management"
+version = "0.1.0"
+description = "A comprehensive project management plugin with task management and document collaboration features"
+authors = ["LaunchApp Studio"]
+license = "MIT"
+edition = "2021"
+rust-version = "1.77.2"
+links = "tauri-plugin-project-management"
+
+[build-dependencies]
+tauri-plugin = { version = "2.0", features = ["build"] }
+
+[dependencies]
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+tauri = { version = "2.0", features = ["rustls-tls"] }
+tauri-plugin = { version = "2.0", features = ["runtime"] }
+log = "0.4"
+thiserror = "1"
+uuid = { version = "1.0", features = ["v4", "serde"] }
+chrono = { version = "0.4", features = ["serde"] }
+tokio = { version = "1", features = ["full"] }
+anyhow = "1.0"
+regex = "1.0"
+walkdir = "2.0"
+notify = "6.0"
+futures = "0.3"
+async-trait = "0.1"
+base64 = "0.22"
+sha2 = "0.10"
+pulldown-cmark = "0.12"
+comrak = "0.28"
+serde_yaml = "0.9"
+
+# Storage plugin dependency (local)
+tauri-plugin-storage = { path = "../tauri-plugin-storage" }
+
+[lib]
+name = "tauri_plugin_project_management"
+crate-type = ["cdylib", "rlib"]
+
+[features]
+default = []

@@ -1,0 +1,12 @@
+[window-manipulation]
+description = "Permissions for window manipulation operations"
+permissions = [
+    "allow-focus-window",
+    "allow-minimize-window",
+    "allow-maximize-window",
+    "allow-unmaximize-window",
+    "allow-set-window-position",
+    "allow-set-window-size",
+    "allow-set-window-title",
+    "allow-update-window-info"
+]

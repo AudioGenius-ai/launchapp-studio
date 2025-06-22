@@ -1,0 +1,13 @@
+"$schema" = "schemas/schema.json"
+
+[default]
+description = "Default permissions for Claude plugin"
+permissions = [
+    "allow-create-session",
+    "allow-send-input",
+    "allow-list-sessions",
+    "allow-stop-session",
+    "allow-recover-sessions",
+    "allow-get-messages",
+    "allow-get-mcp-tools"
+]

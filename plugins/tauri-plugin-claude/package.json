@@ -1,0 +1,26 @@
+{
+  "name": "@code-pilot/plugin-claude",
+  "version": "0.1.0",
+  "description": "Claude CLI integration plugin for Tauri",
+  "main": "./dist-js/index.js",
+  "types": "./dist-js/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "tauri",
+    "plugin",
+    "claude",
+    "ai"
+  ],
+  "author": "Code Pilot Studio",
+  "license": "MIT OR Apache-2.0",
+  "peerDependencies": {
+    "@tauri-apps/api": "^2.0.0"
+  },
+  "devDependencies": {
+    "@tauri-apps/api": "^2.0.0",
+    "typescript": "^5.3.3"
+  }
+}

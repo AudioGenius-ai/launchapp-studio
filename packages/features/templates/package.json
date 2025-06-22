@@ -1,0 +1,38 @@
+{
+  "name": "@code-pilot/feature-templates",
+  "version": "0.0.0",
+  "description": "Template management feature for Code Pilot Studio",
+  "main": "./src/index.ts",
+  "module": "./src/index.ts",
+  "types": "./src/index.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
+    "type-check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@code-pilot/core": "workspace:*",
+    "@code-pilot/types": "workspace:*",
+    "@code-pilot/ui": "workspace:*",
+    "@code-pilot/utils": "workspace:*",
+    "@tauri-apps/api": "2.0.3",
+    "react": "^19.0.0",
+    "zustand": "^5.0.3"
+  },
+  "devDependencies": {
+    "@types/react": "^19.0.3",
+    "tsup": "^8.3.5",
+    "typescript": "^5.7.2"
+  },
+  "peerDependencies": {
+    "react": "^19.0.0"
+  },
+  "sideEffects": false,
+  "publishConfig": {
+    "access": "public"
+  }
+}

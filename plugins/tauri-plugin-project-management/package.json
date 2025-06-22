@@ -1,0 +1,38 @@
+{
+  "name": "tauri-plugin-project-management",
+  "version": "0.1.0",
+  "description": "A comprehensive project management plugin with task management and document collaboration features",
+  "main": "dist-js/index.js",
+  "types": "dist-js/index.d.ts",
+  "scripts": {
+    "build": "tsc && npm run build:permissions",
+    "build:permissions": "cargo build --features tauri/rustls-tls",
+    "dev": "tsc --watch",
+    "prepare": "npm run build"
+  },
+  "files": [
+    "dist-js",
+    "!dist-js/**/*.map"
+  ],
+  "devDependencies": {
+    "@tauri-apps/api": "^2.0.0",
+    "typescript": "^5.0.0"
+  },
+  "peerDependencies": {
+    "@tauri-apps/api": "^2.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/launchapp-studio/launchapp-studio-ide"
+  },
+  "license": "MIT",
+  "keywords": [
+    "tauri",
+    "plugin",
+    "project-management",
+    "task-management",
+    "document-management",
+    "jira",
+    "confluence"
+  ]
+}

@@ -1,0 +1,43 @@
+"$schema" = "schemas/schema.json"
+
+[default]
+description = "Default permissions for git plugin"
+permissions = [
+    "allow-git-status",
+    "allow-git-log",
+    "allow-git-commit",
+    "allow-git-stage",
+    "allow-git-unstage",
+    "allow-git-stage-all",
+    "allow-git-unstage-all",
+    "allow-git-diff",
+    "allow-git-diff-file",
+    "allow-git-branches",
+    "allow-git-create-branch",
+    "allow-git-checkout",
+    "allow-git-delete-branch",
+    "allow-git-merge",
+    "allow-git-fetch",
+    "allow-git-pull",
+    "allow-git-push",
+    "allow-git-remotes",
+    "allow-git-add-remote",
+    "allow-git-remove-remote",
+    "allow-git-stash",
+    "allow-git-stash-list",
+    "allow-git-stash-apply",
+    "allow-git-stash-pop",
+    "allow-git-stash-drop",
+    "allow-git-reset",
+    "allow-git-revert",
+    "allow-git-cherry-pick",
+    "allow-git-tags",
+    "allow-git-create-tag",
+    "allow-git-delete-tag",
+    "allow-git-clone",
+    "allow-git-init",
+    "allow-git-config-get",
+    "allow-git-config-set",
+    "allow-git-blame",
+    "allow-git-show-commit"
+]

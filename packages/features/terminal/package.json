@@ -1,0 +1,40 @@
+{
+  "name": "@code-pilot/feature-terminal",
+  "version": "0.0.1",
+  "description": "Terminal feature package for Code Pilot Studio",
+  "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "dev": "tsc -p tsconfig.json --watch",
+    "clean": "rm -rf dist",
+    "lint": "eslint src"
+  },
+  "dependencies": {
+    "@code-pilot/core": "workspace:*",
+    "@code-pilot/hooks": "workspace:*",
+    "@code-pilot/types": "workspace:*",
+    "@code-pilot/ui": "workspace:*",
+    "@tauri-apps/api": "2.0.3",
+    "@xterm/addon-fit": "^0.10.0",
+    "@xterm/addon-search": "^0.15.0",
+    "@xterm/addon-unicode11": "^0.8.0",
+    "@xterm/addon-web-links": "^0.11.0",
+    "@xterm/xterm": "^5.5.0",
+    "lucide-react": "^0.330.0",
+    "react": "^19.0.0",
+    "zustand": "^5.0.1"
+  },
+  "devDependencies": {
+    "@types/react": "^19.0.1",
+    "typescript": "^5.7.2"
+  },
+  "peerDependencies": {
+    "react": "^19.0.0"
+  }
+}

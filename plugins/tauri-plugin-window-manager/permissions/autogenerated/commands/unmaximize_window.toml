@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-unmaximize-window"
+description = "Enables the unmaximize_window command without any pre-configured scope."
+commands.allow = ["unmaximize_window"]
+
+[[permission]]
+identifier = "deny-unmaximize-window"
+description = "Denies the unmaximize_window command without any pre-configured scope."
+commands.deny = ["unmaximize_window"]

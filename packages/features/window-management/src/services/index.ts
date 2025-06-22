@@ -1,0 +1,1 @@
+export { windowService, WindowService } from './windowService';

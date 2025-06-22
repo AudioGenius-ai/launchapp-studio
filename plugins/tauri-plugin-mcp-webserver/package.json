@@ -1,0 +1,29 @@
+{
+  "name": "@codepilot/tauri-plugin-mcp-webserver",
+  "version": "0.1.0",
+  "description": "MCP (Model Context Protocol) webserver plugin for Tauri",
+  "main": "dist-js/index.js",
+  "types": "dist-js/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc --watch",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "tauri",
+    "plugin",
+    "mcp",
+    "webserver"
+  ],
+  "author": "Code Pilot Studio Team",
+  "license": "MIT",
+  "devDependencies": {
+    "@tauri-apps/api": "2.5.0",
+    "typescript": "^5.3.3"
+  },
+  "files": [
+    "dist-js",
+    "README.md",
+    "LICENSE"
+  ]
+}
