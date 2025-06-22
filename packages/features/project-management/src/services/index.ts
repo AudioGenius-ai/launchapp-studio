@@ -1,4 +1,4 @@
-import { invoke } from '@tauri-apps/api/core';
+import { mcpProjectManagementService, MCPProjectManagementService } from './mcpService';
 import type {
   Project,
   Task,
@@ -15,121 +15,153 @@ import type {
 } from '../types';
 
 export class ProjectManagementService {
+  private mcpService: MCPProjectManagementService;
+
+  constructor(projectId?: string, workspacePath?: string) {
+    this.mcpService = new MCPProjectManagementService(projectId, workspacePath);
+  }
+
+  setProjectContext(projectId: string, workspacePath: string) {
+    this.mcpService.setProjectContext(projectId, workspacePath);
+  }
+
   // Project operations
   async createProject(request: CreateProjectRequest): Promise<Project> {
-    return invoke('plugin:project-management|create_project', { request });
+    return this.mcpService.createProject(request);
   }
 
   async getProject(projectId: string): Promise<Project> {
-    return invoke('plugin:project-management|get_project', { projectId });
+    return this.mcpService.getProject(projectId);
   }
 
   async listProjects(): Promise<Project[]> {
-    return invoke('plugin:project-management|list_projects');
+    return this.mcpService.listProjects();
   }
 
   async deleteProject(projectId: string): Promise<boolean> {
-    return invoke('plugin:project-management|delete_project', { projectId });
+    return this.mcpService.deleteProject(projectId);
   }
 
   async getProjectStatistics(projectId: string): Promise<ProjectStatistics> {
-    return invoke('plugin:project-management|get_project_statistics', { projectId });
+    return this.mcpService.getProjectStatistics(projectId);
   }
 
   // Task operations
   async createTask(projectId: string, request: CreateTaskRequest): Promise<Task> {
-    return invoke('plugin:project-management|create_task', { projectId, request });
+    this.mcpService.setProjectContext(projectId, '.');
+    return this.mcpService.createTask(request);
   }
 
   async getTask(projectId: string, taskId: string): Promise<Task> {
-    return invoke('plugin:project-management|get_task', { projectId, taskId });
+    this.mcpService.setProjectContext(projectId, '.');
+    return this.mcpService.getTask(taskId);
   }
 
   async listTasks(projectId: string, filter?: TaskFilter): Promise<Task[]> {
-    return invoke('plugin:project-management|list_tasks', { projectId, filter });
+    this.mcpService.setProjectContext(projectId, '.');
+    return this.mcpService.listTasks(filter);
   }
 
   async updateTask(projectId: string, taskId: string, request: Partial<CreateTaskRequest>): Promise<Task> {
-    return invoke('plugin:project-management|update_task', { projectId, taskId, request });
+    this.mcpService.setProjectContext(projectId, '.');
+    return this.mcpService.updateTask(taskId, request);
   }
 
   async deleteTask(projectId: string, taskId: string): Promise<boolean> {
-    return invoke('plugin:project-management|delete_task', { projectId, taskId });
+    this.mcpService.setProjectContext(projectId, '.');
+    return this.mcpService.deleteTask(taskId);
   }
 
   async searchTasks(projectId: string, query: string): Promise<Task[]> {
-    return invoke('plugin:project-management|search_tasks', { projectId, query });
+    this.mcpService.setProjectContext(projectId, '.');
+    return this.mcpService.searchTasks(query);
   }
 
   async moveTaskToSprint(projectId: string, taskId: string, sprintId?: string): Promise<boolean> {
-    return invoke('plugin:project-management|move_task_to_sprint', { projectId, taskId, sprintId });
+    this.mcpService.setProjectContext(projectId, '.');
+    return this.mcpService.moveTaskToSprint(taskId, sprintId);
   }
 
   async addTaskComment(projectId: string, taskId: string, content: string, author: string): Promise<void> {
-    return invoke('plugin:project-management|add_task_comment', { projectId, taskId, content, author });
+    this.mcpService.setProjectContext(projectId, '.');
+    return this.mcpService.addTaskComment(taskId, content, author);
   }
 
   // Document operations
   async createDocument(projectId: string, request: CreateDocumentRequest): Promise<Document> {
-    return invoke('plugin:project-management|create_document', { projectId, request });
+    this.mcpService.setProjectContext(projectId, '.');
+    return this.mcpService.createDocument(request);
   }
 
   async getDocument(projectId: string, documentId: string): Promise<Document> {
-    return invoke('plugin:project-management|get_document', { projectId, documentId });
+    this.mcpService.setProjectContext(projectId, '.');
+    return this.mcpService.getDocument(documentId);
   }
 
   async listDocuments(projectId: string, filter?: DocumentFilter): Promise<Document[]> {
-    return invoke('plugin:project-management|list_documents', { projectId, filter });
+    this.mcpService.setProjectContext(projectId, '.');
+    return this.mcpService.listDocuments(filter);
   }
 
   async updateDocument(projectId: string, documentId: string, request: Partial<CreateDocumentRequest>): Promise<Document> {
-    return invoke('plugin:project-management|update_document', { projectId, documentId, request });
+    this.mcpService.setProjectContext(projectId, '.');
+    return this.mcpService.updateDocument(documentId, request);
   }
 
   async deleteDocument(projectId: string, documentId: string): Promise<boolean> {
-    return invoke('plugin:project-management|delete_document', { projectId, documentId });
+    this.mcpService.setProjectContext(projectId, '.');
+    return this.mcpService.deleteDocument(documentId);
   }
 
   async searchDocuments(projectId: string, query: string): Promise<Document[]> {
-    return invoke('plugin:project-management|search_documents', { projectId, query });
+    this.mcpService.setProjectContext(projectId, '.');
+    return this.mcpService.searchDocuments(query);
   }
 
   async renderDocument(projectId: string, documentId: string): Promise<string> {
-    return invoke('plugin:project-management|render_document', { projectId, documentId });
+    this.mcpService.setProjectContext(projectId, '.');
+    return this.mcpService.renderDocument(documentId);
   }
 
   async getDocumentTemplates(): Promise<DocumentTemplate[]> {
-    return invoke('plugin:project-management|get_document_templates');
+    return this.mcpService.getDocumentTemplates();
   }
 
   async createDocumentFromTemplate(projectId: string, template: DocumentTemplate, title: string): Promise<Document> {
-    return invoke('plugin:project-management|create_document_from_template', { projectId, template, title });
+    this.mcpService.setProjectContext(projectId, '.');
+    return this.mcpService.createDocumentFromTemplate(template, title);
   }
 
   // Sprint operations
   async createSprint(projectId: string, request: CreateSprintRequest): Promise<Sprint> {
-    return invoke('plugin:project-management|create_sprint', { projectId, request });
+    this.mcpService.setProjectContext(projectId, '.');
+    return this.mcpService.createSprint(request);
   }
 
   async getSprint(projectId: string, sprintId: string): Promise<Sprint> {
-    return invoke('plugin:project-management|get_sprint', { projectId, sprintId });
+    this.mcpService.setProjectContext(projectId, '.');
+    return this.mcpService.getSprint(sprintId);
   }
 
   async listSprints(projectId: string): Promise<Sprint[]> {
-    return invoke('plugin:project-management|list_sprints', { projectId });
+    this.mcpService.setProjectContext(projectId, '.');
+    return this.mcpService.listSprints();
   }
 
   async startSprint(projectId: string, sprintId: string): Promise<boolean> {
-    return invoke('plugin:project-management|start_sprint', { projectId, sprintId });
+    this.mcpService.setProjectContext(projectId, '.');
+    return this.mcpService.startSprint(sprintId);
   }
 
   async completeSprint(projectId: string, sprintId: string): Promise<boolean> {
-    return invoke('plugin:project-management|complete_sprint', { projectId, sprintId });
+    this.mcpService.setProjectContext(projectId, '.');
+    return this.mcpService.completeSprint(sprintId);
   }
 
   // Search operations
   async searchAll(projectId: string, query: string): Promise<{ tasks: Task[]; documents: Document[]; total_count: number }> {
-    return invoke('plugin:project-management|search_all', { projectId, query });
+    this.mcpService.setProjectContext(projectId, '.');
+    return this.mcpService.searchAll(query);
   }
 }
 

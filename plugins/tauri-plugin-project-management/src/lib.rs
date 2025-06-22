@@ -22,7 +22,7 @@ pub fn init<R: Runtime>() -> TauriPlugin<R>
 where
     R: Runtime,
 {
-    Builder::new("project-management")
+    Builder::<R>::new("project-management")
         .invoke_handler(tauri::generate_handler![
             // Project commands
             create_project,
