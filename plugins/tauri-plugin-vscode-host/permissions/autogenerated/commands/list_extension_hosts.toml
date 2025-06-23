@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-list-extension-hosts"
+description = "Enables the list_extension_hosts command without any pre-configured scope."
+commands.allow = ["list_extension_hosts"]
+
+[[permission]]
+identifier = "deny-list-extension-hosts"
+description = "Denies the list_extension_hosts command without any pre-configured scope."
+commands.deny = ["list_extension_hosts"]

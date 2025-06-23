@@ -1,0 +1,28 @@
+{
+  "name": "@code-pilot/plugin-window-manager",
+  "version": "0.1.0",
+  "description": "Window management plugin for Tauri",
+  "main": "./dist-js/index.js",
+  "types": "./dist-js/index.d.ts",
+  "scripts": {
+    "build": "vite build",
+    "dev": "vite build --watch",
+    "type-check": "tsc --noEmit",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "tauri",
+    "plugin",
+    "window"
+  ],
+  "author": "Code Pilot Studio",
+  "license": "MIT OR Apache-2.0",
+  "peerDependencies": {
+    "@tauri-apps/api": "^2.0.0"
+  },
+  "devDependencies": {
+    "@tauri-apps/api": "^2.5.0",
+    "typescript": "^5.8.3",
+    "vite": "^6.3.5"
+  }
+}

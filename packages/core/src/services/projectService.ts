@@ -9,6 +9,7 @@ import {
   ProjectEventPayload,
   ProjectSettings
 } from '@code-pilot/types';
+
 import { v4 as uuidv4 } from 'uuid';
 
 export interface IProjectRepository {
@@ -203,3 +204,95 @@ export class ProjectService {
     }
   }
 }
+
+// Simple in-memory implementation for development
+class InMemoryProjectRepository implements IProjectRepository {
+  private projects: Map<string, Project> = new Map();
+
+  async findById(id: string): Promise<Project | null> {
+    return this.projects.get(id) || null;
+  }
+
+  async findAll(query: ProjectQuery): Promise<ProjectListResponse> {
+    const allProjects = Array.from(this.projects.values());
+    let filtered = allProjects;
+
+    if (query.search) {
+      const search = query.search.toLowerCase();
+      filtered = filtered.filter(p => 
+        p.name.toLowerCase().includes(search) || 
+        p.description?.toLowerCase().includes(search)
+      );
+    }
+
+    if (query.tags?.length) {
+      filtered = filtered.filter(p => 
+        query.tags!.some(tag => p.tags?.includes(tag))
+      );
+    }
+
+    if (query.status) {
+      filtered = filtered.filter(p => p.status === query.status);
+    }
+
+    // Sorting
+    filtered.sort((a, b) => {
+      const field = query.sortBy || 'updatedAt';
+      const aVal = a[field as keyof Project];
+      const bVal = b[field as keyof Project];
+      const order = query.sortOrder === 'asc' ? 1 : -1;
+      
+      if (aVal! < bVal!) return -order;
+      if (aVal! > bVal!) return order;
+      return 0;
+    });
+
+    // Pagination
+    const page = query.page || 1;
+    const limit = query.limit || 10;
+    const start = (page - 1) * limit;
+    const items = filtered.slice(start, start + limit);
+
+    return {
+      items,
+      total: filtered.length,
+      page,
+      limit,
+      hasMore: start + limit < filtered.length
+    };
+  }
+
+  async create(project: Project): Promise<Project> {
+    this.projects.set(project.id, project);
+    return project;
+  }
+
+  async update(id: string, updates: Partial<Project>): Promise<Project | null> {
+    const project = this.projects.get(id);
+    if (!project) return null;
+    
+    const updated = { ...project, ...updates, updatedAt: new Date() };
+    this.projects.set(id, updated);
+    return updated;
+  }
+
+  async delete(id: string): Promise<boolean> {
+    return this.projects.delete(id);
+  }
+
+  async exists(path: string): Promise<boolean> {
+    return Array.from(this.projects.values()).some(p => p.path === path);
+  }
+}
+
+// Simple event emitter
+class SimpleEventEmitter implements IEventEmitter {
+  emit(event: string, payload: any): void {
+    console.log(`Project event: ${event}`, payload);
+  }
+}
+
+// Create singleton instance with in-memory implementation
+const repository = new InMemoryProjectRepository();
+const eventEmitter = new SimpleEventEmitter();
+export const projectService = new ProjectService(repository, eventEmitter);

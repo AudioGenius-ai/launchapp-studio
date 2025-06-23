@@ -1,21 +1,11 @@
-// Re-export editor types from @code-pilot/types
-export type {
-  EditorFile,
-  EditorTab,
-  EditorState,
-  EditorConfiguration,
-  EditorLanguageSupport,
-  EditorTheme,
-  EditorAction,
-  EditorPosition,
-  EditorSelection,
-  EditorChange,
-  EditorModel,
-  EditorInstance,
-  RecentlyClosedTab
-} from '@code-pilot/types';
+// Export all editor types
+export * from './editor';
 
-import type { RecentlyClosedTab } from '@code-pilot/types';
+// Export all tab types
+export * from './tabs';
+
+// Import types for use in feature-specific interfaces
+import type { RecentlyClosedTab } from './tabs';
 
 // Feature-specific types
 export interface EditorFeatureState {

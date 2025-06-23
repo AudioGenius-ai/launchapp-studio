@@ -1,9 +1,9 @@
 import { forwardRef, useImperativeHandle, useState } from 'react';
-import { TabGroup } from '@code-pilot/ui-kit';
-import { EditorTab, TabGroup as TabGroupType, EditorFile, TabSessionData } from '@code-pilot/types';
+import { TabGroup } from './TabGroup';
+import { EditorTab, TabGroup as TabGroupType, EditorFile, TabSessionData } from '../types';
 import { FileService } from '@code-pilot/core';
 import { EditorView } from './EditorView';
-import { cn } from '@code-pilot/utils';
+import { cn } from '@code-pilot/ui-kit';
 
 interface TabManagerContainerProps {
   fileService: FileService;

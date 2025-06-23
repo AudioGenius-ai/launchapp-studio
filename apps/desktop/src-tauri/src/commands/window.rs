@@ -54,6 +54,7 @@ pub async fn create_project_window(
 }
 
 #[tauri::command]
+#[allow(dead_code)]
 pub async fn open_project_directory(
     app: AppHandle,
     directory_path: String,

@@ -1,14 +1,15 @@
 import { create } from 'zustand';
 import { subscribeWithSelector } from 'zustand/middleware';
 import type { WindowState, WindowInfo, MultiWindowState, WindowEvent } from '../types';
+import { WindowType } from '../types';
 import { getCurrentWindow } from '@tauri-apps/api/window';
 
 interface WindowStore extends MultiWindowState {
   // State
-  currentWindowState: WindowState;
+  currentWindowState: WindowState & { isPinned?: boolean };
   
   // Actions
-  setWindowState: (state: Partial<WindowState>) => void;
+  setWindowState: (state: Partial<WindowState & { isPinned?: boolean }>) => void;
   setWindowInfo: (windowId: string, info: Partial<WindowInfo>) => void;
   addWindow: (info: WindowInfo) => void;
   removeWindow: (windowId: string) => void;
@@ -28,12 +29,20 @@ export const useWindowStore = create<WindowStore>()(
     activeWindowId: null,
     focusedWindowId: null,
     currentWindowState: {
+      id: 'main',
+      type: WindowType.MAIN,
       isMaximized: false,
       isMinimized: false,
       isFullscreen: false,
       isFocused: true,
       isVisible: true,
       isPinned: false,
+      bounds: {
+        x: 0,
+        y: 0,
+        width: 800,
+        height: 600,
+      },
     },
     
     // Actions
@@ -128,37 +137,52 @@ export const useWindowStore = create<WindowStore>()(
           break;
           
         case 'window:maximized':
-          get().setWindowInfo(payload.windowId, {
-            state: { ...get().windows.get(payload.windowId)?.state, isMaximized: true }
-          });
+          const maxWindow = get().windows.get(payload.windowId);
+          if (maxWindow) {
+            get().setWindowInfo(payload.windowId, {
+              state: { ...maxWindow.state, isMaximized: true } as WindowState
+            });
+          }
           get().setWindowState({ isMaximized: true });
           break;
           
         case 'window:unmaximized':
-          get().setWindowInfo(payload.windowId, {
-            state: { ...get().windows.get(payload.windowId)?.state, isMaximized: false }
-          });
+          const unmaxWindow = get().windows.get(payload.windowId);
+          if (unmaxWindow) {
+            get().setWindowInfo(payload.windowId, {
+              state: { ...unmaxWindow.state, isMaximized: false } as WindowState
+            });
+          }
           get().setWindowState({ isMaximized: false });
           break;
           
         case 'window:minimized':
-          get().setWindowInfo(payload.windowId, {
-            state: { ...get().windows.get(payload.windowId)?.state, isMinimized: true }
-          });
+          const minWindow = get().windows.get(payload.windowId);
+          if (minWindow) {
+            get().setWindowInfo(payload.windowId, {
+              state: { ...minWindow.state, isMinimized: true } as WindowState
+            });
+          }
           get().setWindowState({ isMinimized: true });
           break;
           
         case 'window:restored':
-          get().setWindowInfo(payload.windowId, {
-            state: { ...get().windows.get(payload.windowId)?.state, isMinimized: false }
-          });
+          const resWindow = get().windows.get(payload.windowId);
+          if (resWindow) {
+            get().setWindowInfo(payload.windowId, {
+              state: { ...resWindow.state, isMinimized: false } as WindowState
+            });
+          }
           get().setWindowState({ isMinimized: false });
           break;
           
         case 'window:fullscreen':
-          get().setWindowInfo(payload.windowId, {
-            state: { ...get().windows.get(payload.windowId)?.state, isFullscreen: payload.isFullscreen }
-          });
+          const fullWindow = get().windows.get(payload.windowId);
+          if (fullWindow) {
+            get().setWindowInfo(payload.windowId, {
+              state: { ...fullWindow.state, isFullscreen: payload.isFullscreen } as WindowState
+            });
+          }
           get().setWindowState({ isFullscreen: payload.isFullscreen });
           break;
       }
@@ -168,29 +192,28 @@ export const useWindowStore = create<WindowStore>()(
 
 // Subscribe to window events
 if (typeof window !== 'undefined') {
-  getCurrentWindow().then((appWindow) => {
-    const windowId = appWindow.label;
-    
-    // Listen to window events
-    appWindow.onFocusChanged(({ payload: focused }) => {
-      useWindowStore.getState().handleWindowEvent({
-        type: focused ? 'window:focused' : 'window:blurred',
-        payload: { windowId }
-      });
+  const appWindow = getCurrentWindow();
+  const windowId = appWindow.label;
+  
+  // Listen to window events
+  appWindow.onFocusChanged(({ payload: focused }) => {
+    useWindowStore.getState().handleWindowEvent({
+      type: focused ? 'window:focused' : 'window:blurred',
+      payload: { windowId }
     });
-    
-    appWindow.onResized(({ payload }) => {
-      useWindowStore.getState().handleWindowEvent({
-        type: 'window:resized',
-        payload: { windowId, size: payload }
-      });
+  });
+  
+  appWindow.onResized(({ payload }) => {
+    useWindowStore.getState().handleWindowEvent({
+      type: 'window:resized',
+      payload: { windowId, size: payload }
     });
-    
-    appWindow.onMoved(({ payload }) => {
-      useWindowStore.getState().handleWindowEvent({
-        type: 'window:moved',
-        payload: { windowId, position: payload }
-      });
+  });
+  
+  appWindow.onMoved(({ payload }) => {
+    useWindowStore.getState().handleWindowEvent({
+      type: 'window:moved',
+      payload: { windowId, position: payload }
     });
   });
 }

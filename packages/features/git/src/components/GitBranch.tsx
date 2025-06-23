@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { BranchSelector } from './BranchSelector';
 import { useGitStore } from '../stores/gitStore';
-import { Button } from '@code-pilot/ui';
+import { Button } from '@code-pilot/ui-kit';
 import { GitBranch as GitBranchIcon, Plus } from 'lucide-react';
 
 export interface GitBranchProps {

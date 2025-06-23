@@ -2,10 +2,12 @@
   "name": "@code-pilot/plugin-terminal",
   "version": "0.1.0",
   "description": "Terminal emulator plugin for Tauri",
-  "main": "./dist-js/index.js",
+  "main": "./dist-js/index.mjs",
   "types": "./dist-js/index.d.ts",
   "scripts": {
-    "build": "tsc",
+    "build": "vite build && tsc --emitDeclarationOnly --declaration --declarationDir dist-js",
+    "dev": "vite build --watch",
+    "type-check": "tsc --noEmit",
     "prepublishOnly": "npm run build"
   },
   "keywords": [
@@ -20,7 +22,8 @@
     "@tauri-apps/api": "^2.0.0"
   },
   "devDependencies": {
-    "@tauri-apps/api": "^2.0.0",
-    "typescript": "^5.3.3"
+    "@tauri-apps/api": "^2.5.0",
+    "typescript": "^5.8.3",
+    "vite": "^6.3.5"
   }
 }

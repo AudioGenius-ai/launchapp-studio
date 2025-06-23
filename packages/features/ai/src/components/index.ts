@@ -25,6 +25,6 @@ export type { StreamingIndicatorProps } from './StreamingIndicator';
 // Page components
 export { ClaudePage } from './ClaudePage';
 export { ClaudePanel } from './ClaudePanel';
-export { ClaudePanelWithStore } from './ClaudePanelWithStore';
+export { ClaudePanel as ClaudePanelWithStore } from './ClaudePanelWithStore';
 export { ClaudeTauriPanel } from './ClaudeTauriPanel';
 export { ClaudeEventExample } from './ClaudeEventExample';

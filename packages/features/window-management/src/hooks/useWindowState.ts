@@ -24,26 +24,25 @@ export function useWindowState(windowId?: string) {
       updateState();
       
       // Set up listeners for current window
-      getCurrentWindow().then((window) => {
-        const unlistenFocus = window.onFocusChanged(({ payload: focused }) => {
-          store.setWindowState({ isFocused: focused });
-        });
-        
-        const unlistenResize = window.onResized(({ payload }) => {
-          store.setWindowState({ size: payload });
-        });
-        
-        const unlistenMove = window.onMoved(({ payload }) => {
-          store.setWindowState({ position: payload });
-        });
-        
-        // Cleanup
-        return () => {
-          unlistenFocus.then(fn => fn());
-          unlistenResize.then(fn => fn());
-          unlistenMove.then(fn => fn());
-        };
+      const window = getCurrentWindow();
+      const unlistenFocus = window.onFocusChanged(({ payload: focused }: { payload: boolean }) => {
+        store.setWindowState({ isFocused: focused });
       });
+      
+      const unlistenResize = window.onResized(({ payload }: { payload: { width: number; height: number } }) => {
+        store.setWindowState({ size: payload });
+      });
+      
+      const unlistenMove = window.onMoved(({ payload }: { payload: { x: number; y: number } }) => {
+        store.setWindowState({ position: payload });
+      });
+      
+      // Cleanup
+      return () => {
+        unlistenFocus.then((fn: () => void) => fn());
+        unlistenResize.then((fn: () => void) => fn());
+        unlistenMove.then((fn: () => void) => fn());
+      };
     }
   }, [windowId, store]);
   

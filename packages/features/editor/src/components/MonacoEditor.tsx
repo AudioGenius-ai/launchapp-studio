@@ -5,7 +5,7 @@ import {
   EditorConfiguration, 
   EditorLanguageSupport,
   SUPPORTED_LANGUAGES 
-} from '@code-pilot/types';
+} from "../types";
 
 interface MonacoEditorProps {
   value: string;

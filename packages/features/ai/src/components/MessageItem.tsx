@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
-import type { AIMessage, AIMessageRole } from '@code-pilot/types';
-import { cn } from '@code-pilot/utils';
+import type { AIMessage } from '../types';
+import { AIMessageRole } from '../types';
+import { cn } from '@code-pilot/ui-kit';
 import { ToolCallCard } from './ToolCallCard';
 
 export interface MessageItemProps {
@@ -35,7 +36,7 @@ export const MessageItem: React.FC<MessageItemProps> = ({
 
   const roleIcon = useMemo(() => {
     switch (message.role) {
-      case AIMessageRole.User:
+      case AIMessageRole.USER:
         return (
           <div className={cn(
             'rounded-full bg-primary/10 text-primary',
@@ -47,7 +48,7 @@ export const MessageItem: React.FC<MessageItemProps> = ({
             </svg>
           </div>
         );
-      case AIMessageRole.Assistant:
+      case AIMessageRole.ASSISTANT:
         return (
           <div className={cn(
             'rounded-full bg-secondary/10 text-secondary',
@@ -59,7 +60,7 @@ export const MessageItem: React.FC<MessageItemProps> = ({
             </svg>
           </div>
         );
-      case AIMessageRole.System:
+      case AIMessageRole.SYSTEM:
         return (
           <div className={cn(
             'rounded-full bg-muted text-muted-foreground',
@@ -149,18 +150,18 @@ export const MessageItem: React.FC<MessageItemProps> = ({
   return (
     <div className={cn(
       'flex gap-3 group',
-      message.role === AIMessageRole.User && 'flex-row-reverse',
+      message.role === AIMessageRole.USER && 'flex-row-reverse',
       className
     )}>
       {roleIcon}
       
       <div className={cn(
         'flex-1 overflow-hidden',
-        message.role === AIMessageRole.User && 'flex flex-col items-end'
+        message.role === AIMessageRole.USER && 'flex flex-col items-end'
       )}>
         <div className={cn(
           'rounded-lg px-3 py-2 max-w-[85%]',
-          message.role === AIMessageRole.User
+          message.role === AIMessageRole.USER
             ? 'bg-primary text-primary-foreground'
             : 'bg-muted',
           compactMode && 'text-sm'
@@ -202,7 +203,7 @@ export const MessageItem: React.FC<MessageItemProps> = ({
         {message.toolCalls && message.toolCalls.length > 0 && (
           <div className={cn(
             'mt-2 space-y-2',
-            message.role === AIMessageRole.User && 'items-end'
+            message.role === AIMessageRole.USER && 'items-end'
           )}>
             {message.toolCalls.map((toolCall) => (
               <ToolCallCard
@@ -218,9 +219,9 @@ export const MessageItem: React.FC<MessageItemProps> = ({
         {!isEditing && (
           <div className={cn(
             'flex items-center gap-2 mt-1 opacity-0 group-hover:opacity-100 transition-opacity',
-            message.role === AIMessageRole.User && 'justify-end'
+            message.role === AIMessageRole.USER && 'justify-end'
           )}>
-            {message.role === AIMessageRole.User && onEdit && (
+            {message.role === AIMessageRole.USER && onEdit && (
               <button
                 onClick={() => setIsEditing(true)}
                 className="text-xs text-muted-foreground hover:text-foreground"

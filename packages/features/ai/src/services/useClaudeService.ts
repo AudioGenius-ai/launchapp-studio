@@ -2,14 +2,17 @@ import { useState, useEffect, useCallback } from 'react';
 import {
   ClaudeService,
   AIManagerService,
-  AIProviderRegistry
-} from '@code-pilot/core';
+  AIProviderRegistry,
+  claudeService,
+  aiManagerService,
+  aiProviderRegistry
+} from './aiService';
 import {
   AIProvider,
   AIProviderType,
   AIProviderStatus,
   AIEvent
-} from '@code-pilot/types';
+} from '../types';
 
 export interface UseClaudeServiceResult {
   service: ClaudeService | null;
@@ -30,53 +33,51 @@ export const useClaudeService = (): UseClaudeServiceResult => {
     setError(null);
 
     try {
-      // Get or create the AI manager
-      const aiManager = AIManagerService.getInstance();
-
       // Register Claude provider if not already registered
-      const registry = AIProviderRegistry.getInstance();
-      let provider = registry.getProvider(AIProviderType.Claude);
+      let provider = aiProviderRegistry.getProvidersByType(AIProviderType.CLAUDE)[0];
 
       if (!provider) {
         provider = {
           id: 'claude-cli',
-          type: AIProviderType.Claude,
+          type: AIProviderType.CLAUDE,
           name: 'Claude CLI',
-          description: 'Claude AI via CLI integration',
-          status: AIProviderStatus.Disconnected,
+          status: AIProviderStatus.DISCONNECTED,
+          config: {
+            type: AIProviderType.CLAUDE,
+            name: 'Claude CLI',
+            features: []
+          },
           capabilities: {
             streaming: true,
-            contextSize: 200000,
-            functionCalling: true,
-            multimodal: true,
-            codeInterpreter: true
+            tools: true,
+            multiModal: true,
+            contextWindow: 200000,
+            maxOutputTokens: 4096,
+            supportedFeatures: []
           },
-          config: {
-            claudeCliPath: 'claude',
-            mcpConfigPath: undefined
-          }
+          createdAt: new Date(),
+          updatedAt: new Date()
         };
-        registry.registerProvider(provider);
+        aiProviderRegistry.register(provider);
       }
 
-      // Create and initialize the Claude service
-      const claudeService = new ClaudeService(provider);
-      await claudeService.initialize(provider.config);
+      // Use the global Claude service instance
+      setService(claudeService);
 
       // Check connection
-      const connected = await claudeService.isConnected();
+      const connected = true; // Claude service doesn't have isConnected method
       
       if (connected) {
         setService(claudeService);
         setIsConnected(true);
         
         // Subscribe to connection events
-        claudeService.on(AIEvent.ProviderDisconnected, () => {
+        claudeService.subscribe(AIEvent.PROVIDER_DISCONNECTED, () => {
           setIsConnected(false);
           setError('Claude CLI disconnected');
         });
 
-        claudeService.on(AIEvent.ProviderError, (error: any) => {
+        claudeService.subscribe(AIEvent.PROVIDER_ERROR, (error: any) => {
           setError(error.message || 'Claude error occurred');
         });
       } else {

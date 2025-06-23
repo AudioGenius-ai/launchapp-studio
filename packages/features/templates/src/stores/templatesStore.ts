@@ -37,7 +37,7 @@ const defaultTemplates: Template[] = [
     id: 'nextjs-app',
     name: 'Next.js App',
     description: 'Full-stack React framework with App Router and TypeScript',
-    category: TemplateCategory.NextJS,
+    category: TemplateCategory.FullStack,
     tags: ['nextjs', 'react', 'typescript', 'app-router'],
     icon: '▲',
     config: {
@@ -65,7 +65,7 @@ const defaultTemplates: Template[] = [
     id: 'node-express',
     name: 'Express API',
     description: 'Node.js REST API with Express and TypeScript',
-    category: TemplateCategory.Express,
+    category: TemplateCategory.Backend,
     tags: ['node', 'express', 'typescript', 'api'],
     icon: '🚀',
     config: {
@@ -79,12 +79,13 @@ const defaultTemplates: Template[] = [
     id: 'python-fastapi',
     name: 'FastAPI',
     description: 'Modern Python web API with automatic OpenAPI docs',
-    category: TemplateCategory.FastAPI,
+    category: TemplateCategory.Backend,
     tags: ['python', 'fastapi', 'api', 'async'],
     icon: '🐍',
     config: {
       framework: 'fastapi',
       language: 'python',
+      packageManager: 'pip',
       features: ['uvicorn', 'pydantic', 'pytest', 'black']
     }
   },
@@ -92,11 +93,13 @@ const defaultTemplates: Template[] = [
     id: 'rust-cli',
     name: 'Rust CLI',
     description: 'Command-line application with clap and tokio',
-    category: TemplateCategory.Rust,
+    category: TemplateCategory.Tooling,
     tags: ['rust', 'cli', 'clap', 'tokio'],
     icon: '🦀',
     config: {
+      framework: 'cli',
       language: 'rust',
+      packageManager: 'cargo',
       features: ['clap', 'tokio', 'serde', 'reqwest']
     }
   },
@@ -118,10 +121,12 @@ const defaultTemplates: Template[] = [
     id: 'monorepo-turborepo',
     name: 'Turborepo Monorepo',
     description: 'Monorepo setup with Turborepo, TypeScript, and pnpm workspaces',
-    category: TemplateCategory.Monorepo,
+    category: TemplateCategory.Tooling,
     tags: ['monorepo', 'turborepo', 'typescript', 'pnpm'],
     icon: '📦',
     config: {
+      framework: 'turborepo',
+      language: 'typescript',
       packageManager: 'pnpm',
       features: ['turborepo', 'typescript', 'changesets', 'eslint']
     }

@@ -1,8 +1,15 @@
 import React, { useState } from 'react';
-import { Dialog, Button, Input, Label } from '@code-pilot/ui';
+import {
+  Dialog,
+  DialogPortal,
+  DialogOverlay,
+  DialogContent,
+  DialogTitle,
+  DialogClose
+} from '@code-pilot/ui-kit';
 import { X, FolderOpen, GitBranch } from 'lucide-react';
 import { CreateProjectDto } from '@code-pilot/types';
-import { cn } from '@code-pilot/ui';
+import { cn } from '@code-pilot/ui-kit';
 
 interface CreateProjectDialogProps {
   open: boolean;
@@ -89,27 +96,27 @@ export const CreateProjectDialog: React.FC<CreateProjectDialogProps> = ({
   };
 
   return (
-    <Dialog.Root open={open} onOpenChange={onOpenChange}>
-      <Dialog.Portal>
-        <Dialog.Overlay className="fixed inset-0 bg-black/50 data-[state=open]:animate-fadeIn" />
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogPortal>
+        <DialogOverlay className="fixed inset-0 bg-black/50 data-[state=open]:animate-fadeIn" />
         
-        <Dialog.Content className="fixed top-[50%] left-[50%] translate-x-[-50%] translate-y-[-50%] 
+        <DialogContent className="fixed top-[50%] left-[50%] translate-x-[-50%] translate-y-[-50%] 
                                    w-full max-w-md bg-white dark:bg-gray-800 rounded-lg shadow-xl 
                                    data-[state=open]:animate-contentShow">
           <div className="p-6">
             {/* Header */}
             <div className="flex items-center justify-between mb-6">
-              <Dialog.Title className="text-xl font-semibold text-gray-900 dark:text-white">
+              <DialogTitle className="text-xl font-semibold text-gray-900 dark:text-white">
                 Create New Project
-              </Dialog.Title>
-              <Dialog.Close asChild>
+              </DialogTitle>
+              <DialogClose asChild>
                 <button
                   className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
                   aria-label="Close"
                 >
                   <X className="w-5 h-5 text-gray-500" />
                 </button>
-              </Dialog.Close>
+              </DialogClose>
             </div>
 
             {/* Form */}
@@ -261,8 +268,8 @@ export const CreateProjectDialog: React.FC<CreateProjectDialogProps> = ({
               </div>
             </form>
           </div>
-        </Dialog.Content>
-      </Dialog.Portal>
-    </Dialog.Root>
+        </DialogContent>
+      </DialogPortal>
+    </Dialog>
   );
 };

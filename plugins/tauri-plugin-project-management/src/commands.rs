@@ -3,13 +3,13 @@ use crate::error::{ProjectManagementError, Result};
 use crate::models::*;
 use crate::project_service::ProjectService;
 use crate::task_service::TaskService;
-use tauri::{command, AppHandle};
+use tauri::{command, AppHandle, Runtime};
 
 // Project commands
 
 #[command]
 pub async fn create_project(
-    app: AppHandle,
+    app: AppHandle<R>,
     request: CreateProjectRequest,
 ) -> Result<Project> {
     let service = ProjectService::new(app);
@@ -17,14 +17,14 @@ pub async fn create_project(
 }
 
 #[command]
-pub async fn get_project(app: AppHandle, project_id: String) -> Result<Project> {
+pub async fn get_project(app: AppHandle<R>, project_id: String) -> Result<Project> {
     let service = ProjectService::new(app);
     service.get_project(&project_id).await
 }
 
 #[command]
 pub async fn update_project(
-    app: AppHandle,
+    app: AppHandle<R>,
     project_id: String,
     request: UpdateProjectRequest,
 ) -> Result<Project> {
@@ -33,20 +33,20 @@ pub async fn update_project(
 }
 
 #[command]
-pub async fn delete_project(app: AppHandle, project_id: String) -> Result<bool> {
+pub async fn delete_project(app: AppHandle<R>, project_id: String) -> Result<bool> {
     let service = ProjectService::new(app);
     service.delete_project(&project_id).await
 }
 
 #[command]
-pub async fn list_projects(app: AppHandle) -> Result<Vec<Project>> {
+pub async fn list_projects(app: AppHandle<R>) -> Result<Vec<Project>> {
     let service = ProjectService::new(app);
     service.list_projects().await
 }
 
 #[command]
 pub async fn add_project_member(
-    app: AppHandle,
+    app: AppHandle<R>,
     project_id: String,
     user_id: String,
     role: ProjectRole,
@@ -57,7 +57,7 @@ pub async fn add_project_member(
 
 #[command]
 pub async fn remove_project_member(
-    app: AppHandle,
+    app: AppHandle<R>,
     project_id: String,
     user_id: String,
 ) -> Result<bool> {
@@ -67,7 +67,7 @@ pub async fn remove_project_member(
 
 #[command]
 pub async fn get_project_settings(
-    app: AppHandle,
+    app: AppHandle<R>,
     project_id: String,
 ) -> Result<ProjectSettings> {
     let service = ProjectService::new(app);
@@ -76,7 +76,7 @@ pub async fn get_project_settings(
 
 #[command]
 pub async fn update_project_settings(
-    app: AppHandle,
+    app: AppHandle<R>,
     project_id: String,
     settings: ProjectSettings,
 ) -> Result<ProjectSettings> {
@@ -88,7 +88,7 @@ pub async fn update_project_settings(
 
 #[command]
 pub async fn create_task(
-    app: AppHandle,
+    app: AppHandle<R>,
     project_id: String,
     request: CreateTaskRequest,
 ) -> Result<Task> {
@@ -97,14 +97,14 @@ pub async fn create_task(
 }
 
 #[command]
-pub async fn get_task(app: AppHandle, project_id: String, task_id: String) -> Result<Task> {
+pub async fn get_task(app: AppHandle<R>, project_id: String, task_id: String) -> Result<Task> {
     let service = TaskService::new(app);
     service.get_task(&project_id, &task_id).await
 }
 
 #[command]
 pub async fn update_task(
-    app: AppHandle,
+    app: AppHandle<R>,
     project_id: String,
     task_id: String,
     request: UpdateTaskRequest,
@@ -114,14 +114,14 @@ pub async fn update_task(
 }
 
 #[command]
-pub async fn delete_task(app: AppHandle, project_id: String, task_id: String) -> Result<bool> {
+pub async fn delete_task(app: AppHandle<R>, project_id: String, task_id: String) -> Result<bool> {
     let service = TaskService::new(app);
     service.delete_task(&project_id, &task_id).await
 }
 
 #[command]
 pub async fn list_tasks(
-    app: AppHandle,
+    app: AppHandle<R>,
     project_id: String,
     filter: Option<TaskFilter>,
 ) -> Result<Vec<Task>> {
@@ -131,7 +131,7 @@ pub async fn list_tasks(
 
 #[command]
 pub async fn search_tasks(
-    app: AppHandle,
+    app: AppHandle<R>,
     project_id: String,
     query: String,
 ) -> Result<Vec<Task>> {
@@ -141,7 +141,7 @@ pub async fn search_tasks(
 
 #[command]
 pub async fn move_task_to_sprint(
-    app: AppHandle,
+    app: AppHandle<R>,
     project_id: String,
     task_id: String,
     sprint_id: Option<String>,
@@ -152,7 +152,7 @@ pub async fn move_task_to_sprint(
 
 #[command]
 pub async fn add_task_comment(
-    app: AppHandle,
+    app: AppHandle<R>,
     project_id: String,
     task_id: String,
     content: String,
@@ -164,7 +164,7 @@ pub async fn add_task_comment(
 
 #[command]
 pub async fn remove_task_comment(
-    app: AppHandle,
+    app: AppHandle<R>,
     project_id: String,
     task_id: String,
     comment_id: String,
@@ -212,7 +212,7 @@ pub async fn get_task_history(
 
 #[command]
 pub async fn bulk_update_tasks(
-    app: AppHandle,
+    app: AppHandle<R>,
     project_id: String,
     task_ids: Vec<String>,
     update: UpdateTaskRequest,
@@ -234,7 +234,7 @@ pub async fn bulk_update_tasks(
 
 #[command]
 pub async fn create_sprint(
-    app: AppHandle,
+    app: AppHandle<R>,
     project_id: String,
     request: CreateSprintRequest,
 ) -> Result<Sprint> {
@@ -244,7 +244,7 @@ pub async fn create_sprint(
 
 #[command]
 pub async fn get_sprint(
-    app: AppHandle,
+    app: AppHandle<R>,
     project_id: String,
     sprint_id: String,
 ) -> Result<Sprint> {
@@ -254,7 +254,7 @@ pub async fn get_sprint(
 
 #[command]
 pub async fn update_sprint(
-    app: AppHandle,
+    app: AppHandle<R>,
     project_id: String,
     sprint_id: String,
     request: UpdateSprintRequest,
@@ -265,7 +265,7 @@ pub async fn update_sprint(
 
 #[command]
 pub async fn delete_sprint(
-    app: AppHandle,
+    app: AppHandle<R>,
     project_id: String,
     sprint_id: String,
 ) -> Result<bool> {
@@ -274,20 +274,20 @@ pub async fn delete_sprint(
 }
 
 #[command]
-pub async fn list_sprints(app: AppHandle, project_id: String) -> Result<Vec<Sprint>> {
+pub async fn list_sprints(app: AppHandle<R>, project_id: String) -> Result<Vec<Sprint>> {
     let service = ProjectService::new(app);
     service.list_sprints(&project_id).await
 }
 
 #[command]
-pub async fn start_sprint(app: AppHandle, project_id: String, sprint_id: String) -> Result<bool> {
+pub async fn start_sprint(app: AppHandle<R>, project_id: String, sprint_id: String) -> Result<bool> {
     let service = ProjectService::new(app);
     service.start_sprint(&project_id, &sprint_id).await
 }
 
 #[command]
 pub async fn complete_sprint(
-    app: AppHandle,
+    app: AppHandle<R>,
     project_id: String,
     sprint_id: String,
 ) -> Result<bool> {
@@ -297,7 +297,7 @@ pub async fn complete_sprint(
 
 #[command]
 pub async fn get_sprint_report(
-    app: AppHandle,
+    app: AppHandle<R>,
     project_id: String,
     sprint_id: String,
 ) -> Result<SprintReport> {
@@ -307,7 +307,7 @@ pub async fn get_sprint_report(
 
 #[command]
 pub async fn add_task_to_sprint(
-    app: AppHandle,
+    app: AppHandle<R>,
     project_id: String,
     task_id: String,
     sprint_id: String,
@@ -318,7 +318,7 @@ pub async fn add_task_to_sprint(
 
 #[command]
 pub async fn remove_task_from_sprint(
-    app: AppHandle,
+    app: AppHandle<R>,
     project_id: String,
     task_id: String,
 ) -> Result<bool> {
@@ -330,7 +330,7 @@ pub async fn remove_task_from_sprint(
 
 #[command]
 pub async fn create_document(
-    app: AppHandle,
+    app: AppHandle<R>,
     project_id: String,
     request: CreateDocumentRequest,
 ) -> Result<Document> {
@@ -340,7 +340,7 @@ pub async fn create_document(
 
 #[command]
 pub async fn get_document(
-    app: AppHandle,
+    app: AppHandle<R>,
     project_id: String,
     document_id: String,
 ) -> Result<Document> {
@@ -350,7 +350,7 @@ pub async fn get_document(
 
 #[command]
 pub async fn update_document(
-    app: AppHandle,
+    app: AppHandle<R>,
     project_id: String,
     document_id: String,
     request: UpdateDocumentRequest,
@@ -361,7 +361,7 @@ pub async fn update_document(
 
 #[command]
 pub async fn delete_document(
-    app: AppHandle,
+    app: AppHandle<R>,
     project_id: String,
     document_id: String,
 ) -> Result<bool> {
@@ -371,7 +371,7 @@ pub async fn delete_document(
 
 #[command]
 pub async fn list_documents(
-    app: AppHandle,
+    app: AppHandle<R>,
     project_id: String,
     filter: Option<DocumentFilter>,
 ) -> Result<Vec<Document>> {
@@ -381,7 +381,7 @@ pub async fn list_documents(
 
 #[command]
 pub async fn search_documents(
-    app: AppHandle,
+    app: AppHandle<R>,
     project_id: String,
     query: String,
 ) -> Result<Vec<Document>> {
@@ -391,7 +391,7 @@ pub async fn search_documents(
 
 #[command]
 pub async fn get_document_history(
-    app: AppHandle,
+    app: AppHandle<R>,
     project_id: String,
     document_id: String,
 ) -> Result<Vec<DocumentVersion>> {
@@ -401,7 +401,7 @@ pub async fn get_document_history(
 
 #[command]
 pub async fn render_document(
-    app: AppHandle,
+    app: AppHandle<R>,
     project_id: String,
     document_id: String,
 ) -> Result<String> {
@@ -411,7 +411,7 @@ pub async fn render_document(
 
 #[command]
 pub async fn create_document_from_template(
-    app: AppHandle,
+    app: AppHandle<R>,
     project_id: String,
     template: DocumentTemplate,
     title: String,
@@ -421,14 +421,14 @@ pub async fn create_document_from_template(
 }
 
 #[command]
-pub async fn get_document_templates(app: AppHandle) -> Result<Vec<DocumentTemplate>> {
+pub async fn get_document_templates(app: AppHandle<R>) -> Result<Vec<DocumentTemplate>> {
     let service = DocumentService::new(app);
     service.get_document_templates().await
 }
 
 #[command]
 pub async fn export_document(
-    app: AppHandle,
+    app: AppHandle<R>,
     project_id: String,
     document_id: String,
     format: String,
@@ -441,7 +441,7 @@ pub async fn export_document(
 
 #[command]
 pub async fn get_project_statistics(
-    app: AppHandle,
+    app: AppHandle<R>,
     project_id: String,
 ) -> Result<ProjectStatistics> {
     let service = ProjectService::new(app);
@@ -450,7 +450,7 @@ pub async fn get_project_statistics(
 
 #[command]
 pub async fn search_all(
-    app: AppHandle,
+    app: AppHandle<R>,
     project_id: String,
     query: String,
 ) -> Result<SearchResult> {
@@ -486,7 +486,7 @@ pub async fn import_project(_app: AppHandle, _data: Vec<u8>) -> Result<Project> 
 }
 
 #[command]
-pub async fn validate_project_data(app: AppHandle, project_id: String) -> Result<bool> {
+pub async fn validate_project_data(app: AppHandle<R>, project_id: String) -> Result<bool> {
     let service = ProjectService::new(app);
     let _project = service.get_project(&project_id).await?;
     // TODO: Implement validation logic

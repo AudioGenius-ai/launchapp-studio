@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
-import type { AISession, AIMessage, SendMessageRequest } from '@code-pilot/types';
-import { cn } from '@code-pilot/utils';
+import type { AISession, SendMessageRequest } from '../types';
+import { cn } from '@code-pilot/ui-kit';
 import { MessageList } from './MessageList';
 import { MessageInput } from './MessageInput';
 import { SessionStatus } from './SessionStatus';

@@ -1,4 +1,4 @@
-import { Template, TemplateCategory } from '@code-pilot/feature-templates';
+import { Template, TemplateCategory, TemplateType } from '@code-pilot/feature-templates';
 
 export const templates: Template[] = [
   // ===== REACT TEMPLATES =====

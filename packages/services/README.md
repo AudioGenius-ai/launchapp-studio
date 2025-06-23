@@ -1,134 +1,120 @@
 # @code-pilot/services
 
-Shared service implementations for Code Pilot Studio.
+Core services package for Code Pilot Studio providing unified APIs for storage, events, window management, and API communication.
+
+## Installation
+
+```bash
+pnpm add @code-pilot/services
+```
 
 ## Services
 
-### API Client
+### AppStorage Service
 
-A robust HTTP client with retry logic, timeout support, and error handling.
+Wraps Tauri's store API for persistent data storage.
 
 ```typescript
-import { ApiClient } from '@code-pilot/services';
+import { appStorage } from '@code-pilot/services';
 
-const client = new ApiClient({
-  baseUrl: 'https://api.example.com',
-  timeout: 30000,
-  retries: 3,
-  defaultHeaders: {
-    'Authorization': 'Bearer token'
-  }
-});
+// Set a value
+await appStorage.set('settings', 'theme', 'dark');
 
-// GET request
-const data = await client.get('/users');
+// Get a value
+const theme = await appStorage.get<string>('settings', 'theme');
 
-// POST request
-const user = await client.post('/users', { name: 'John' });
+// Get with default
+const theme = await appStorage.getOrDefault('settings', 'theme', 'light');
 
-// Upload file
-const formData = new FormData();
-formData.append('file', file);
-const result = await client.upload('/upload', formData);
+// Convenience methods for common stores
+await appStorage.setSetting('fontSize', 14);
+await appStorage.setPreference('autoSave', true);
+await appStorage.setCache('lastProject', projectData);
 ```
 
-### Storage Service
+### EventBus Service
 
-Abstract storage service with multiple adapters and TTL support.
-
-```typescript
-import { StorageService, LocalStorageAdapter } from '@code-pilot/services';
-
-const storage = new StorageService({
-  prefix: 'myapp:',
-  adapter: new LocalStorageAdapter(),
-  ttl: 3600000 // 1 hour default TTL
-});
-
-// Set value with TTL
-await storage.set('user', { id: 1, name: 'John' }, 3600000);
-
-// Get value
-const user = await storage.get('user');
-
-// Create namespaced storage
-const sessionStorage = storage.namespace('session');
-await sessionStorage.set('token', 'abc123');
-```
-
-### Event Bus
-
-Global event bus for application-wide communication.
+Application-wide event communication system.
 
 ```typescript
-import { globalEventBus, createEventBus } from '@code-pilot/services';
+import { eventBus } from '@code-pilot/services';
 
 // Subscribe to events
-const unsubscribe = globalEventBus.on('user:login', (data) => {
-  console.log('User logged in:', data);
+const subscription = eventBus.on('project:opened', (project) => {
+  console.log('Project opened:', project);
+});
+
+// Subscribe to one-time events
+eventBus.once('app:ready', () => {
+  console.log('App is ready\!');
 });
 
 // Emit events
-await globalEventBus.emit('user:login', { userId: 123 });
+await eventBus.emit('project:created', newProject);
 
-// Create namespaced event bus
-const editorEvents = globalEventBus.namespace('editor');
-editorEvents.on('save', () => console.log('Editor saved'));
+// Synchronous emit (doesn't wait for async listeners)
+eventBus.emitSync('ui:update', data);
 
-// Wildcard listeners
-globalEventBus.onAny((data) => {
-  console.log('Any event:', data);
-});
+// Wait for an event
+const result = await eventBus.waitFor('operation:complete', 5000);
 
-// Cleanup
-unsubscribe();
+// Unsubscribe
+subscription.unsubscribe();
 ```
 
 ### Window Service
 
-Abstract window management service for desktop applications.
+Multi-window management for Tauri applications.
 
 ```typescript
-import { WindowService, MockWindowService } from '@code-pilot/services';
+import { windowService } from '@code-pilot/services';
 
-const windowService = new MockWindowService();
-
-// Create new window
-const windowId = await windowService.create('/editor', {
-  title: 'Code Editor',
-  width: 1200,
-  height: 800,
-  center: true
+// Create a new window
+const window = await windowService.createWindow({
+  label: 'settings',
+  title: 'Settings',
+  width: 800,
+  height: 600,
+  resizable: true
 });
 
 // Window operations
-await windowService.maximize();
-await windowService.setTitle('New Title');
-await windowService.setSize(1400, 900);
+await windowService.focusWindow('settings');
+await windowService.minimizeWindow('settings');
+await windowService.maximizeWindow('settings');
+await windowService.setWindowTitle('settings', 'New Title');
 
-// Window state
-const isMaximized = await windowService.isMaximized();
-const size = await windowService.getSize();
-const position = await windowService.getPosition();
+// Get window state
+const state = await windowService.getWindowState('settings');
 
-// Events
-const cleanup = windowService.onResize((id, size) => {
-  console.log(`Window ${id} resized to`, size);
-});
+// Close window
+await windowService.closeWindow('settings');
 ```
 
-## Development
+### API Client
 
-```bash
-# Build the package
-pnpm build
+HTTP client for backend communication through Tauri.
 
-# Watch mode
-pnpm dev
+```typescript
+import { apiClient } from '@code-pilot/services';
 
-# Run tests
-pnpm test
+// Configure base URL and headers
+apiClient.setBaseUrl('https://api.example.com');
+apiClient.setAuthToken('your-token');
 
-# Type checking
-pnpm typecheck
+// Make requests
+const response = await apiClient.get<Project[]>('/projects');
+const newProject = await apiClient.post('/projects', projectData);
+const updated = await apiClient.put('/projects/${id}', updates);
+await apiClient.delete('/projects/${id}');
 ```
+
+## Features
+
+- **Type Safety**: Full TypeScript support with proper type definitions
+- **Singleton Patterns**: Consistent service instances across the application
+- **Event-Driven**: Loose coupling through the event bus system
+- **Error Handling**: Comprehensive error handling and logging
+- **Development Support**: Mock implementations for non-Tauri environments
+- **Async/Await**: Modern promise-based APIs throughout
+EOF < /dev/null

@@ -6,11 +6,11 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from '@code-pilot/ui';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@code-pilot/ui';
-import { Input } from '@code-pilot/ui';
-import { Button } from '@code-pilot/ui';
-import { ScrollArea } from '@code-pilot/ui';
+} from '@code-pilot/ui-kit';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@code-pilot/ui-kit';
+import { Input } from '@code-pilot/ui-kit';
+import { Button } from '@code-pilot/ui-kit';
+import { ScrollArea } from '@code-pilot/ui-kit';
 import { TemplateGrid } from './TemplateGrid';
 import { TemplatePreview } from './TemplatePreview';
 import { ProjectCreationWizard } from './ProjectCreationWizard';
@@ -30,14 +30,13 @@ const categories: { value: TemplateCategory | 'all'; label: string; icon?: strin
   { value: 'all', label: 'All Templates' },
   { value: TemplateCategory.React, label: 'React', icon: '⚛️' },
   { value: TemplateCategory.Vue, label: 'Vue', icon: '💚' },
-  { value: TemplateCategory.NextJS, label: 'Next.js', icon: '▲' },
-  { value: TemplateCategory.Node, label: 'Node.js', icon: '🟢' },
-  { value: TemplateCategory.Python, label: 'Python', icon: '🐍' },
-  { value: TemplateCategory.Rust, label: 'Rust', icon: '🦀' },
+  { value: TemplateCategory.Angular, label: 'Angular', icon: '🅰️' },
+  { value: TemplateCategory.FullStack, label: 'Full Stack', icon: '🌐' },
+  { value: TemplateCategory.Backend, label: 'Backend', icon: '⚙️' },
   { value: TemplateCategory.Desktop, label: 'Desktop', icon: '💻' },
   { value: TemplateCategory.Mobile, label: 'Mobile', icon: '📱' },
-  { value: TemplateCategory.CLI, label: 'CLI', icon: '🖥️' },
-  { value: TemplateCategory.Monorepo, label: 'Monorepo', icon: '📦' },
+  { value: TemplateCategory.Library, label: 'Library', icon: '📚' },
+  { value: TemplateCategory.Tooling, label: 'Tooling', icon: '🔧' },
 ];
 
 export function StartProjectDialog({
@@ -83,11 +82,11 @@ export function StartProjectDialog({
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-w-6xl h-[80vh] p-0">
+        <DialogContent className="max-w-4xl w-[90vw] max-h-[80vh] p-0 overflow-hidden">
           <div className="flex flex-col h-full">
-            <DialogHeader className="px-6 pt-6 pb-4 border-b">
-              <DialogTitle className="text-2xl">Start New Project</DialogTitle>
-              <DialogDescription>
+            <DialogHeader className="px-6 pt-6 pb-4 border-b bg-background">
+              <DialogTitle className="text-2xl font-bold">Start New Project</DialogTitle>
+              <DialogDescription className="text-muted-foreground">
                 Choose a template to kickstart your project or open an existing folder
               </DialogDescription>
             </DialogHeader>
@@ -95,10 +94,10 @@ export function StartProjectDialog({
             <Tabs
               value={activeTab}
               onValueChange={setActiveTab}
-              className="flex-1 flex flex-col"
+              className="flex-1 flex flex-col overflow-hidden"
             >
-              <div className="px-6 pt-4">
-                <TabsList className="grid w-full grid-cols-3 max-w-md">
+              <div className="px-6 pt-4 pb-2 shrink-0">
+                <TabsList className="grid w-full grid-cols-3 max-w-md mx-auto">
                   <TabsTrigger value="templates" className="flex items-center gap-2">
                     <Sparkles className="w-4 h-4" />
                     Templates
@@ -114,30 +113,30 @@ export function StartProjectDialog({
                 </TabsList>
               </div>
 
-              <TabsContent value="templates" className="flex-1 flex flex-col mt-0">
-                <div className="px-6 py-4 space-y-4">
+              <TabsContent value="templates" className="flex-1 flex flex-col mt-0 overflow-hidden">
+                <div className="px-6 py-4 space-y-3 bg-muted/20 border-b">
                   {/* Search Bar */}
-                  <div className="relative">
+                  <div className="relative max-w-md mx-auto">
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
                     <Input
                       placeholder="Search templates..."
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
-                      className="pl-10"
+                      className="pl-10 bg-background border-muted-foreground/20"
                     />
                   </div>
 
                   {/* Category Filters */}
-                  <div className="flex gap-2 flex-wrap">
-                    {categories.map((category) => (
+                  <div className="flex gap-2 flex-wrap justify-center">
+                    {categories.slice(0, 8).map((category) => (
                       <Button
                         key={category.value}
                         variant={selectedCategory === category.value ? 'default' : 'outline'}
                         size="sm"
                         onClick={() => setSelectedCategory(category.value)}
-                        className="flex items-center gap-1"
+                        className="h-8 px-3 text-xs"
                       >
-                        {category.icon && <span>{category.icon}</span>}
+                        {category.icon && <span className="text-sm mr-1">{category.icon}</span>}
                         {category.label}
                       </Button>
                     ))}
@@ -145,14 +144,16 @@ export function StartProjectDialog({
                 </div>
 
                 {/* Template Grid */}
-                <ScrollArea className="flex-1 px-6 pb-6">
-                  <TemplateGrid
-                    templates={filteredTemplates}
-                    onTemplateSelect={handleTemplateSelect}
-                    selectedCategory={selectedCategory}
-                    searchQuery={searchQuery}
-                  />
-                </ScrollArea>
+                <div className="flex-1 overflow-y-auto">
+                  <div className="px-6 py-6">
+                    <TemplateGrid
+                      templates={filteredTemplates}
+                      onTemplateSelect={handleTemplateSelect}
+                      selectedCategory={selectedCategory}
+                      searchQuery={searchQuery}
+                    />
+                  </div>
+                </div>
               </TabsContent>
 
               <TabsContent value="folder" className="flex-1 flex items-center justify-center">

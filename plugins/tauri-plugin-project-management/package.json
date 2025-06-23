@@ -1,22 +1,24 @@
 {
-  "name": "tauri-plugin-project-management",
+  "name": "@code-pilot/plugin-project-management",
   "version": "0.1.0",
   "description": "A comprehensive project management plugin with task management and document collaboration features",
-  "main": "dist-js/index.js",
+  "main": "dist-js/index.mjs",
   "types": "dist-js/index.d.ts",
   "scripts": {
-    "build": "tsc && npm run build:permissions",
+    "build": "vite build && npm run build:permissions",
     "build:permissions": "cargo build --features tauri/rustls-tls",
-    "dev": "tsc --watch",
-    "prepare": "npm run build"
+    "dev": "vite build --watch",
+    "type-check": "tsc --noEmit",
+    "prepare-disabled": "npm run build"
   },
   "files": [
     "dist-js",
     "!dist-js/**/*.map"
   ],
   "devDependencies": {
-    "@tauri-apps/api": "^2.0.0",
-    "typescript": "^5.0.0"
+    "@tauri-apps/api": "^2.5.0",
+    "typescript": "^5.8.3",
+    "vite": "^6.3.5"
   },
   "peerDependencies": {
     "@tauri-apps/api": "^2.0.0"

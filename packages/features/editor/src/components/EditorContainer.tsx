@@ -1,30 +1,30 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { EditorService, FileService } from '@code-pilot/core';
+import { editorService } from '../services';
 import { 
   EditorFile, 
   EditorTab, 
   EditorConfiguration,
   DEFAULT_EDITOR_CONFIG 
-} from '@code-pilot/types';
+} from "../types";
 import { MonacoEditor } from './MonacoEditor';
 import { EditorTabs } from './EditorTabs';
 import { EditorStatusBar } from './EditorStatusBar';
-import { cn } from '@code-pilot/ui';
+import { clsx } from 'clsx';
+import { twMerge } from 'tailwind-merge';
+
+const cn = (...inputs: any[]) => twMerge(clsx(inputs));
 
 interface EditorContainerProps {
-  fileService: FileService;
   className?: string;
   onFileChange?: (file: EditorFile) => void;
   onConfigChange?: (config: EditorConfiguration) => void;
 }
 
 export const EditorContainer = React.forwardRef<any, EditorContainerProps>(({
-  fileService,
   className,
   onFileChange,
   onConfigChange
 }, ref) => {
-  const [editorService] = useState(() => new EditorService(fileService));
   const [tabs, setTabs] = useState<EditorTab[]>([]);
   const [activeFile, setActiveFile] = useState<EditorFile | undefined>();
   const [activeTabId, setActiveTabId] = useState<string | null>(null);

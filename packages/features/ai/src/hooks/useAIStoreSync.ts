@@ -7,7 +7,7 @@ import {
   AIMessage,
   StreamChunk,
   AIError
-} from '@code-pilot/types';
+} from '../types';
 import { useAIStore } from '../stores/aiStore';
 
 /**
@@ -33,9 +33,9 @@ export const useAIStoreSync = () => {
     // Helper to setup event listener
     const setupListener = async <T = any>(
       event: AIEvent,
-      handler: (payload: AIEventPayload<T>) => void
+      handler: (payload: AIEventPayload & { data: T }) => void
     ) => {
-      const unlisten = await listen<AIEventPayload<T>>(event, (e) => {
+      const unlisten = await listen<AIEventPayload & { data: T }>(event, (e) => {
         handler(e.payload);
       });
       unlisteners.push(unlisten);
@@ -44,7 +44,7 @@ export const useAIStoreSync = () => {
     // Setup all event listeners
     const setupListeners = async () => {
       // Session events
-      await setupListener<AISession>(AIEvent.SessionCreated, (payload) => {
+      await setupListener<AISession>(AIEvent.SESSION_CREATED, (payload) => {
         const { data: session } = payload;
         createSession({
           providerId: session.providerId,
@@ -55,7 +55,7 @@ export const useAIStoreSync = () => {
         });
       });
 
-      await setupListener<AISession>(AIEvent.SessionUpdated, (payload) => {
+      await setupListener<AISession>(AIEvent.SESSION_UPDATED, (payload) => {
         const { data: session } = payload;
         updateSession(session.id, {
           name: session.name,
@@ -65,41 +65,41 @@ export const useAIStoreSync = () => {
         });
       });
 
-      await setupListener<{ sessionId: string }>(AIEvent.SessionDeleted, (payload) => {
+      await setupListener<{ sessionId: string }>(AIEvent.SESSION_ENDED, (payload) => {
         deleteSession(payload.data.sessionId);
       });
 
-      await setupListener<{ status: string }>(AIEvent.SessionStatusChanged, (payload) => {
+      await setupListener<{ status: string }>(AIEvent.SESSION_UPDATED, (payload) => {
         if (payload.sessionId) {
           updateSession(payload.sessionId, { status: payload.data.status as any });
         }
       });
 
       // Message events
-      await setupListener<AIMessage>(AIEvent.MessageSent, (payload) => {
+      await setupListener<AIMessage>(AIEvent.MESSAGE_SENT, (payload) => {
         if (payload.sessionId) {
           addMessage(payload.sessionId, payload.data);
         }
       });
 
-      await setupListener<AIMessage>(AIEvent.MessageReceived, (payload) => {
+      await setupListener<AIMessage>(AIEvent.MESSAGE_RECEIVED, (payload) => {
         if (payload.sessionId) {
           addMessage(payload.sessionId, payload.data);
         }
       });
 
-      await setupListener<StreamChunk>(AIEvent.MessageStreaming, (payload) => {
+      await setupListener<StreamChunk>(AIEvent.MESSAGE_STREAMING, (payload) => {
         updateStreamingContent(payload.data);
       });
 
-      await setupListener<{ messageId: string }>(AIEvent.MessageCompleted, (payload) => {
+      await setupListener<{ messageId: string }>(AIEvent.MESSAGE_COMPLETE, (payload) => {
         completeStreaming();
         if (payload.sessionId && payload.data.messageId) {
           clearError(`message-${payload.data.messageId}`);
         }
       });
 
-      await setupListener<AIError>(AIEvent.MessageError, (payload) => {
+      await setupListener<AIError>(AIEvent.MESSAGE_ERROR, (payload) => {
         completeStreaming();
         if (payload.sessionId) {
           setError(`session-${payload.sessionId}`, payload.data);
@@ -108,13 +108,13 @@ export const useAIStoreSync = () => {
 
       // Provider events
       await setupListener<{ providerId: string; connected: boolean }>(
-        AIEvent.ProviderConnected,
+        AIEvent.PROVIDER_CONNECTED,
         (payload) => {
           clearError(`provider-${payload.data.providerId}`);
         }
       );
 
-      await setupListener<AIError>(AIEvent.ProviderError, (payload) => {
+      await setupListener<AIError>(AIEvent.PROVIDER_ERROR, (payload) => {
         if (payload.providerId) {
           setError(`provider-${payload.providerId}`, payload.data);
         }
@@ -122,7 +122,7 @@ export const useAIStoreSync = () => {
 
       // Token events
       await setupListener<{ tokens: number; sessionId: string }>(
-        AIEvent.TokensUpdated,
+        AIEvent.SESSION_UPDATED,
         (payload) => {
           if (payload.sessionId) {
             updateSession(payload.sessionId, {
@@ -133,7 +133,7 @@ export const useAIStoreSync = () => {
       );
 
       // Context events
-      await setupListener(AIEvent.ContextChanged, (payload) => {
+      await setupListener(AIEvent.SESSION_UPDATED, (payload) => {
         if (payload.sessionId) {
           updateSession(payload.sessionId, { context: payload.data });
         }
@@ -160,10 +160,8 @@ export const useAIEventEmitter = () => {
   }) => {
     const { emit: tauriEmit } = await import('@tauri-apps/api/event');
     
-    const payload: AIEventPayload<T> = {
-      event,
+    const payload: AIEventPayload = {
       data,
-      timestamp: new Date(),
       ...metadata
     };
     

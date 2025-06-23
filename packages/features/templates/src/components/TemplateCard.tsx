@@ -1,7 +1,7 @@
 import React from 'react';
 import { Template } from '../types';
-import { Card, CardContent, CardFooter, CardHeader } from '@code-pilot/ui';
-import { Badge } from '@code-pilot/ui';
+import { Card, CardContent, CardFooter, CardHeader } from '@code-pilot/ui-kit';
+import { Badge } from '@code-pilot/ui-kit';
 import { cn } from '@code-pilot/utils';
 
 interface TemplateCardProps {
@@ -29,23 +29,23 @@ export function TemplateCard({ template, onClick, className }: TemplateCardProps
   return (
     <Card
       className={cn(
-        'cursor-pointer transition-all hover:scale-105 hover:shadow-lg',
-        'flex flex-col h-full',
+        'cursor-pointer transition-all hover:shadow-md hover:border-primary/30',
+        'flex flex-col h-full bg-card border-muted',
         className
       )}
       onClick={onClick}
     >
       <CardHeader className="pb-3">
-        <div className="flex items-start justify-between">
-          <div className="flex-1">
-            <h3 className="font-semibold text-lg leading-tight">{template.name}</h3>
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex-1 min-w-0">
+            <h3 className="font-semibold text-base leading-tight truncate">{template.name}</h3>
             {template.config?.framework && (
-              <p className="text-sm text-muted-foreground mt-1">{template.config.framework}</p>
+              <p className="text-xs text-muted-foreground mt-1">{template.config.framework}</p>
             )}
           </div>
           {template.icon && (
             <div
-              className="w-12 h-12 rounded-lg flex items-center justify-center text-white text-2xl font-bold shadow-md"
+              className="w-10 h-10 rounded-md flex items-center justify-center text-white text-xl font-bold flex-shrink-0"
               style={{ backgroundColor: bgColor }}
             >
               {getTemplateIcon(template.icon)}
@@ -54,39 +54,42 @@ export function TemplateCard({ template, onClick, className }: TemplateCardProps
         </div>
       </CardHeader>
 
-      <CardContent className="flex-1 pb-3">
-        <p className="text-sm text-muted-foreground line-clamp-2">{template.description}</p>
+      <CardContent className="flex-1 py-2">
+        <p className="text-xs text-muted-foreground line-clamp-2 mb-3">{template.description}</p>
         
         {template.config?.features && template.config.features.length > 0 && (
-          <div className="flex flex-wrap gap-1 mt-3">
-            {template.config.features.slice(0, 3).map((tech) => (
-              <Badge key={tech} variant="secondary" className="text-xs">
+          <div className="flex flex-wrap gap-1">
+            {template.config.features.slice(0, 2).map((tech) => (
+              <span
+                key={tech}
+                className="inline-flex items-center px-2 py-0.5 rounded-md bg-primary/10 text-primary text-xs font-medium"
+              >
                 {tech}
-              </Badge>
+              </span>
             ))}
-            {template.config.features.length > 3 && (
-              <Badge variant="secondary" className="text-xs">
-                +{template.config.features.length - 3}
-              </Badge>
+            {template.config.features.length > 2 && (
+              <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-muted text-muted-foreground text-xs">
+                +{template.config.features.length - 2}
+              </span>
             )}
           </div>
         )}
       </CardContent>
 
-      <CardFooter className="pt-3 pb-4">
+      <CardFooter className="pt-2 pb-3 border-t border-border/50">
         <div className="flex items-center justify-between w-full">
           <div className="flex flex-wrap gap-1">
             {template.tags.slice(0, 2).map((tag) => (
               <span
                 key={tag}
-                className="text-xs px-2 py-0.5 bg-muted rounded-full text-muted-foreground"
+                className="text-[10px] px-1.5 py-0.5 bg-muted/50 rounded text-muted-foreground"
               >
                 {tag}
               </span>
             ))}
           </div>
           {template.author && (
-            <span className="text-xs text-muted-foreground">
+            <span className="text-[10px] text-muted-foreground">
               by {template.author}
             </span>
           )}

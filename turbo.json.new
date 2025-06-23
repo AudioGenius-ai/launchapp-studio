@@ -1,0 +1,59 @@
+{
+  "$schema": "https://turbo.build/schema.json",
+  "ui": "tui",
+  "tasks": {
+    "build": {
+      "dependsOn": ["^build"],
+      "outputs": ["dist/**", ".next/**", "!.next/cache/**", "dist-js/**"],
+      "env": ["NODE_ENV"]
+    },
+    "build:packages": {
+      "dependsOn": ["^build"],
+      "outputs": ["dist/**"],
+      "cache": true
+    },
+    "dev": {
+      "dependsOn": ["^build:packages"],
+      "persistent": true,
+      "cache": false
+    },
+    "dev:packages": {
+      "persistent": true,
+      "cache": false
+    },
+    "lint": {
+      "dependsOn": ["^typecheck"],
+      "outputs": [],
+      "cache": true
+    },
+    "test": {
+      "dependsOn": ["build"],
+      "outputs": ["coverage/**"],
+      "cache": true
+    },
+    "typecheck": {
+      "outputs": [],
+      "cache": true
+    },
+    "clean": {
+      "cache": false
+    },
+    "tauri:dev": {
+      "dependsOn": ["^build:packages"],
+      "cache": false,
+      "persistent": true,
+      "env": ["TAURI_*", "RUST_*"]
+    },
+    "tauri:build": {
+      "dependsOn": ["build"],
+      "outputs": ["src-tauri/target/**"],
+      "cache": true,
+      "env": ["TAURI_*", "RUST_*"]
+    },
+    "build:sidecars": {
+      "outputs": ["src-tauri/binaries/**"],
+      "cache": true,
+      "env": ["CARGO_*", "RUST_*"]
+    }
+  }
+}

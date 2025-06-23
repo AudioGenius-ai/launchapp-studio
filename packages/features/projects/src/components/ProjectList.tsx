@@ -1,8 +1,8 @@
 import React from 'react';
 import { Project } from '@code-pilot/types';
 import { ProjectCard } from './ProjectCard';
-import { Search, FolderPlus } from 'lucide-react';
-import { cn } from '@code-pilot/ui';
+import { Search } from 'lucide-react';
+import { cn } from '@code-pilot/ui-kit';
 
 interface ProjectListProps {
   projects: Project[];

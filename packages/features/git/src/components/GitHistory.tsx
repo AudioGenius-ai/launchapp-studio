@@ -1,6 +1,31 @@
 import React, { useEffect, useState } from 'react';
 import { useGitStore } from '../stores/gitStore';
-import { Button, ScrollArea } from '@code-pilot/ui';
+import { clsx } from 'clsx';
+import { twMerge } from 'tailwind-merge';
+
+const cn = (...inputs: any[]) => twMerge(clsx(inputs));
+const Button = ({ children, onClick, className, size, variant, disabled, ...props }: any) => (
+  <button 
+    onClick={onClick} 
+    className={cn(
+      'inline-flex items-center justify-center rounded',
+      size === 'sm' && 'h-8 px-3 text-xs',
+      variant === 'ghost' && 'hover:bg-gray-100 dark:hover:bg-gray-800',
+      disabled && 'opacity-50 cursor-not-allowed',
+      className
+    )} 
+    disabled={disabled}
+    {...props}
+  >
+    {children}
+  </button>
+);
+
+const ScrollArea = ({ children, className }: any) => (
+  <div className={cn('overflow-auto', className)}>
+    {children}
+  </div>
+);
 import { 
   GitCommit as GitCommitIcon, 
   Calendar, 
@@ -89,7 +114,7 @@ export const GitHistory: React.FC<GitHistoryProps> = ({
                           </div>
                           <div className="flex items-center gap-1">
                             <Calendar className="h-3 w-3" />
-                            <span>{formatDate(commit.author.timestamp.toString())}</span>
+                            <span>{formatDate(commit.author.timestamp ? commit.author.timestamp.toString() : commit.author.date.toString())}</span>
                           </div>
                         </div>
                       </div>

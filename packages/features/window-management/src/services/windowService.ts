@@ -1,6 +1,6 @@
-import { windowManager } from '@code-pilot/core';
-import { getCurrentWindow, getAllWindows, WebviewWindow } from '@tauri-apps/api/window';
-import { save, load } from '@tauri-apps/plugin-window-state';
+import { getCurrentWindow, getAllWindows } from '@tauri-apps/api/window';
+import { WebviewWindow } from '@tauri-apps/api/webviewWindow';
+import { saveWindowState, restoreStateCurrent, StateFlags } from '@tauri-apps/plugin-window-state';
 import type { WindowConfig, WindowState, WindowPosition, WindowSize } from '../types';
 
 export class WindowService {
@@ -17,7 +17,7 @@ export class WindowService {
   
   // Window creation and management
   async createWindow(label: string, config: WindowConfig): Promise<WebviewWindow> {
-    return windowManager.createWindow(label, {
+    const webview = new WebviewWindow(label, {
       url: config.url || '/',
       title: config.title,
       width: config.width,
@@ -36,6 +36,7 @@ export class WindowService {
       x: config.x,
       y: config.y,
     });
+    return webview;
   }
   
   async closeWindow(windowId?: string): Promise<void> {
@@ -43,113 +44,113 @@ export class WindowService {
       const window = await this.getWindow(windowId);
       return window?.close();
     }
-    return getCurrentWindow().then(w => w.close());
+    return getCurrentWindow().close();
   }
   
   async getWindow(windowId: string): Promise<WebviewWindow | null> {
     const windows = await getAllWindows();
-    return windows.find(w => w.label === windowId) || null;
+    return (windows.find(w => w.label === windowId) || null) as WebviewWindow | null;
   }
   
   async getAllWindows(): Promise<WebviewWindow[]> {
-    return getAllWindows();
+    return getAllWindows() as any as WebviewWindow[];
   }
   
   async getCurrentWindow(): Promise<WebviewWindow> {
-    return getCurrentWindow();
+    return getCurrentWindow() as any;
   }
   
   // Window state operations
   async minimize(windowId?: string): Promise<void> {
-    const window = windowId ? await this.getWindow(windowId) : await getCurrentWindow();
+    const window = windowId ? await this.getWindow(windowId) : getCurrentWindow();
     return window?.minimize();
   }
   
   async maximize(windowId?: string): Promise<void> {
-    const window = windowId ? await this.getWindow(windowId) : await getCurrentWindow();
+    const window = windowId ? await this.getWindow(windowId) : getCurrentWindow();
     return window?.maximize();
   }
   
   async unmaximize(windowId?: string): Promise<void> {
-    const window = windowId ? await this.getWindow(windowId) : await getCurrentWindow();
+    const window = windowId ? await this.getWindow(windowId) : getCurrentWindow();
     return window?.unmaximize();
   }
   
   async toggleMaximize(windowId?: string): Promise<void> {
-    const window = windowId ? await this.getWindow(windowId) : await getCurrentWindow();
+    const window = windowId ? await this.getWindow(windowId) : getCurrentWindow();
     return window?.toggleMaximize();
   }
   
   async setFullscreen(fullscreen: boolean, windowId?: string): Promise<void> {
-    const window = windowId ? await this.getWindow(windowId) : await getCurrentWindow();
+    const window = windowId ? await this.getWindow(windowId) : getCurrentWindow();
     return window?.setFullscreen(fullscreen);
   }
   
   async show(windowId?: string): Promise<void> {
-    const window = windowId ? await this.getWindow(windowId) : await getCurrentWindow();
+    const window = windowId ? await this.getWindow(windowId) : getCurrentWindow();
     return window?.show();
   }
   
   async hide(windowId?: string): Promise<void> {
-    const window = windowId ? await this.getWindow(windowId) : await getCurrentWindow();
+    const window = windowId ? await this.getWindow(windowId) : getCurrentWindow();
     return window?.hide();
   }
   
   async setFocus(windowId?: string): Promise<void> {
-    const window = windowId ? await this.getWindow(windowId) : await getCurrentWindow();
+    const window = windowId ? await this.getWindow(windowId) : getCurrentWindow();
     return window?.setFocus();
   }
   
   async center(windowId?: string): Promise<void> {
-    const window = windowId ? await this.getWindow(windowId) : await getCurrentWindow();
+    const window = windowId ? await this.getWindow(windowId) : getCurrentWindow();
     return window?.center();
   }
   
   // Window properties
   async setTitle(title: string, windowId?: string): Promise<void> {
-    const window = windowId ? await this.getWindow(windowId) : await getCurrentWindow();
+    const window = windowId ? await this.getWindow(windowId) : getCurrentWindow();
     return window?.setTitle(title);
   }
   
   async setAlwaysOnTop(alwaysOnTop: boolean, windowId?: string): Promise<void> {
-    const window = windowId ? await this.getWindow(windowId) : await getCurrentWindow();
+    const window = windowId ? await this.getWindow(windowId) : getCurrentWindow();
     return window?.setAlwaysOnTop(alwaysOnTop);
   }
   
   async setDecorations(decorations: boolean, windowId?: string): Promise<void> {
-    const window = windowId ? await this.getWindow(windowId) : await getCurrentWindow();
+    const window = windowId ? await this.getWindow(windowId) : getCurrentWindow();
     return window?.setDecorations(decorations);
   }
   
   async setSkipTaskbar(skip: boolean, windowId?: string): Promise<void> {
-    const window = windowId ? await this.getWindow(windowId) : await getCurrentWindow();
+    const window = windowId ? await this.getWindow(windowId) : getCurrentWindow();
     return window?.setSkipTaskbar(skip);
   }
   
   // Window position and size
   async setPosition(position: WindowPosition, windowId?: string): Promise<void> {
-    const window = windowId ? await this.getWindow(windowId) : await getCurrentWindow();
+    const window = windowId ? await this.getWindow(windowId) : getCurrentWindow();
     return window?.setPosition(new LogicalPosition(position.x, position.y));
   }
   
   async setSize(size: WindowSize, windowId?: string): Promise<void> {
-    const window = windowId ? await this.getWindow(windowId) : await getCurrentWindow();
+    const window = windowId ? await this.getWindow(windowId) : getCurrentWindow();
     return window?.setSize(new LogicalSize(size.width, size.height));
   }
   
   async setMinSize(size: WindowSize | null, windowId?: string): Promise<void> {
-    const window = windowId ? await this.getWindow(windowId) : await getCurrentWindow();
+    const window = windowId ? await this.getWindow(windowId) : getCurrentWindow();
     return window?.setMinSize(size ? new LogicalSize(size.width, size.height) : null);
   }
   
   async setMaxSize(size: WindowSize | null, windowId?: string): Promise<void> {
-    const window = windowId ? await this.getWindow(windowId) : await getCurrentWindow();
+    const window = windowId ? await this.getWindow(windowId) : getCurrentWindow();
     return window?.setMaxSize(size ? new LogicalSize(size.width, size.height) : null);
   }
   
   // Window state queries
   async getWindowState(windowId?: string): Promise<WindowState> {
-    const window = windowId ? await this.getWindow(windowId) : await getCurrentWindow();
+    const window = windowId ? await this.getWindow(windowId) : getCurrentWindow();
     if (!window) {
       throw new Error('Window not found');
     }
@@ -162,8 +163,8 @@ export class WindowService {
       window.isVisible(),
     ]);
     
-    const position = await window.position();
-    const size = await window.size();
+    const position = await (window as any).position();
+    const size = await (window as any).size();
     
     return {
       isMaximized,
@@ -179,11 +180,11 @@ export class WindowService {
   
   // State persistence
   async saveWindowState(flags?: number): Promise<void> {
-    return save(flags);
+    return saveWindowState(flags ?? StateFlags.ALL);
   }
   
   async restoreWindowState(flags?: number): Promise<void> {
-    return load(flags);
+    return restoreStateCurrent(flags ?? StateFlags.ALL);
   }
 }
 

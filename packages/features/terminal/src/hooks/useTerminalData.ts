@@ -1,6 +1,6 @@
 import { useEffect, useRef, useCallback } from 'react';
-import { terminalService } from '@code-pilot/core';
-import { TerminalData } from '@code-pilot/types';
+import { terminalService } from '../services/terminalService';
+import { TerminalData } from '../types';
 
 interface UseTerminalDataOptions {
   terminalId: string;
@@ -21,26 +21,24 @@ export function useTerminalData({
 
   useEffect(() => {
     // Subscribe to terminal data
-    unsubscribeRef.current = terminalService.onTerminalData(terminalId, (data: TerminalData) => {
+    unsubscribeRef.current = terminalService.onTerminalData((data: TerminalData) => {
+      if (data.terminalId !== terminalId) return;
+      
       switch (data.type) {
-        case 'output':
+        case 'data':
+        default:
           if (onOutput && typeof data.data === 'string') {
             onOutput(data.data);
           }
           break;
         case 'exit':
-          if (onExit && typeof data.data === 'number') {
-            onExit(data.data);
+          if (onExit) {
+            onExit(0);
           }
           break;
-        case 'title':
-          if (onTitleChange && typeof data.data === 'string') {
-            onTitleChange(data.data);
-          }
-          break;
-        case 'cwd':
-          if (onCwdChange && typeof data.data === 'string') {
-            onCwdChange(data.data);
+        case 'error':
+          if (onOutput && typeof data.data === 'string') {
+            onOutput(`\x1b[31mError: ${data.data}\x1b[0m\n`);
           }
           break;
       }
@@ -54,7 +52,7 @@ export function useTerminalData({
   }, [terminalId, onOutput, onExit, onTitleChange, onCwdChange]);
 
   const sendInput = useCallback(async (data: string) => {
-    await terminalService.sendInput(terminalId, data);
+    await terminalService.writeToTerminal(terminalId, data);
   }, [terminalId]);
 
   const resize = useCallback(async (cols: number, rows: number) => {
@@ -62,11 +60,11 @@ export function useTerminalData({
   }, [terminalId]);
 
   const clear = useCallback(async () => {
-    await terminalService.clearTerminal(terminalId);
+    await terminalService.writeToTerminal(terminalId, '\x1b[2J\x1b[H');
   }, [terminalId]);
 
   const paste = useCallback(async (data: string) => {
-    await terminalService.pasteToTerminal(terminalId, data);
+    await terminalService.writeToTerminal(terminalId, data);
   }, [terminalId]);
 
   return {

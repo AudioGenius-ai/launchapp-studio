@@ -1,6 +1,9 @@
 import React from 'react';
-import { EditorConfiguration } from '@code-pilot/types';
-import { cn } from '@code-pilot/ui';
+import { EditorConfiguration } from "../types";
+import { clsx } from 'clsx';
+import { twMerge } from 'tailwind-merge';
+
+const cn = (...inputs: any[]) => twMerge(clsx(inputs));
 
 interface EditorSettingsProps {
   config: EditorConfiguration;

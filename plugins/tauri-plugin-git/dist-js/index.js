@@ -1,125 +1,158 @@
-import { invoke } from '@tauri-apps/api/core';
-// Status and info
-export async function gitStatus(repoPath) {
-    return await invoke('plugin:git|git_status', { repoPath });
+"use strict";
+Object.defineProperty(exports, Symbol.toStringTag, { value: "Module" });
+typeof SuppressedError === "function" ? SuppressedError : function(error, suppressed, message) {
+  var e = new Error(message);
+  return e.name = "SuppressedError", e.error = error, e.suppressed = suppressed, e;
+};
+async function invoke(cmd, args = {}, options) {
+  return window.__TAURI_INTERNALS__.invoke(cmd, args, options);
 }
-export async function gitLog(repoPath, options = {}) {
-    return await invoke('plugin:git|git_log', { repoPath, options });
+async function gitStatus(repoPath) {
+  return await invoke("plugin:git|git_status", { repoPath });
 }
-// Staging
-export async function gitStage(repoPath, filePath) {
-    return await invoke('plugin:git|git_stage', { repoPath, filePath });
+async function gitLog(repoPath, options = {}) {
+  return await invoke("plugin:git|git_log", { repoPath, options });
 }
-export async function gitUnstage(repoPath, filePath) {
-    return await invoke('plugin:git|git_unstage', { repoPath, filePath });
+async function gitStage(repoPath, filePath) {
+  return await invoke("plugin:git|git_stage", { repoPath, filePath });
 }
-export async function gitStageAll(repoPath) {
-    return await invoke('plugin:git|git_stage_all', { repoPath });
+async function gitUnstage(repoPath, filePath) {
+  return await invoke("plugin:git|git_unstage", { repoPath, filePath });
 }
-export async function gitUnstageAll(repoPath) {
-    return await invoke('plugin:git|git_unstage_all', { repoPath });
+async function gitStageAll(repoPath) {
+  return await invoke("plugin:git|git_stage_all", { repoPath });
 }
-// Commits
-export async function gitCommit(repoPath, options) {
-    return await invoke('plugin:git|git_commit', { repoPath, options });
+async function gitUnstageAll(repoPath) {
+  return await invoke("plugin:git|git_unstage_all", { repoPath });
 }
-// Diffs
-export async function gitDiff(repoPath, cached = false) {
-    return await invoke('plugin:git|git_diff', { repoPath, cached });
+async function gitCommit(repoPath, options) {
+  return await invoke("plugin:git|git_commit", { repoPath, options });
 }
-export async function gitDiffFile(repoPath, filePath, cached = false) {
-    return await invoke('plugin:git|git_diff_file', { repoPath, filePath, cached });
+async function gitDiff(repoPath, cached = false) {
+  return await invoke("plugin:git|git_diff", { repoPath, cached });
 }
-// Branches
-export async function gitBranches(repoPath) {
-    return await invoke('plugin:git|git_branches', { repoPath });
+async function gitDiffFile(repoPath, filePath, cached = false) {
+  return await invoke("plugin:git|git_diff_file", { repoPath, filePath, cached });
 }
-export async function gitCreateBranch(repoPath, branchName, fromRef) {
-    return await invoke('plugin:git|git_create_branch', { repoPath, branchName, fromRef });
+async function gitBranches(repoPath) {
+  return await invoke("plugin:git|git_branches", { repoPath });
 }
-export async function gitCheckout(repoPath, options) {
-    return await invoke('plugin:git|git_checkout', { repoPath, options });
+async function gitCreateBranch(repoPath, branchName, fromRef) {
+  return await invoke("plugin:git|git_create_branch", { repoPath, branchName, fromRef });
 }
-export async function gitDeleteBranch(repoPath, branchName, force = false) {
-    return await invoke('plugin:git|git_delete_branch', { repoPath, branchName, force });
+async function gitCheckout(repoPath, options) {
+  return await invoke("plugin:git|git_checkout", { repoPath, options });
 }
-export async function gitMerge(repoPath, options) {
-    return await invoke('plugin:git|git_merge', { repoPath, options });
+async function gitDeleteBranch(repoPath, branchName, force = false) {
+  return await invoke("plugin:git|git_delete_branch", { repoPath, branchName, force });
 }
-// Remote operations
-export async function gitFetch(repoPath, options = {}) {
-    return await invoke('plugin:git|git_fetch', { repoPath, options });
+async function gitMerge(repoPath, options) {
+  return await invoke("plugin:git|git_merge", { repoPath, options });
 }
-export async function gitPull(repoPath, options = {}) {
-    return await invoke('plugin:git|git_pull', { repoPath, options });
+async function gitFetch(repoPath, options = {}) {
+  return await invoke("plugin:git|git_fetch", { repoPath, options });
 }
-export async function gitPush(repoPath, options = {}) {
-    return await invoke('plugin:git|git_push', { repoPath, options });
+async function gitPull(repoPath, options = {}) {
+  return await invoke("plugin:git|git_pull", { repoPath, options });
 }
-// Remotes
-export async function gitRemotes(repoPath) {
-    return await invoke('plugin:git|git_remotes', { repoPath });
+async function gitPush(repoPath, options = {}) {
+  return await invoke("plugin:git|git_push", { repoPath, options });
 }
-export async function gitAddRemote(repoPath, name, url) {
-    return await invoke('plugin:git|git_add_remote', { repoPath, name, url });
+async function gitRemotes(repoPath) {
+  return await invoke("plugin:git|git_remotes", { repoPath });
 }
-export async function gitRemoveRemote(repoPath, name) {
-    return await invoke('plugin:git|git_remove_remote', { repoPath, name });
+async function gitAddRemote(repoPath, name, url) {
+  return await invoke("plugin:git|git_add_remote", { repoPath, name, url });
 }
-// Stash
-export async function gitStash(repoPath, options = {}) {
-    return await invoke('plugin:git|git_stash', { repoPath, options });
+async function gitRemoveRemote(repoPath, name) {
+  return await invoke("plugin:git|git_remove_remote", { repoPath, name });
 }
-export async function gitStashList(repoPath) {
-    return await invoke('plugin:git|git_stash_list', { repoPath });
+async function gitStash(repoPath, options = {}) {
+  return await invoke("plugin:git|git_stash", { repoPath, options });
 }
-export async function gitStashApply(repoPath, stashId) {
-    return await invoke('plugin:git|git_stash_apply', { repoPath, stashId });
+async function gitStashList(repoPath) {
+  return await invoke("plugin:git|git_stash_list", { repoPath });
 }
-export async function gitStashPop(repoPath, stashId) {
-    return await invoke('plugin:git|git_stash_pop', { repoPath, stashId });
+async function gitStashApply(repoPath, stashId) {
+  return await invoke("plugin:git|git_stash_apply", { repoPath, stashId });
 }
-export async function gitStashDrop(repoPath, stashId) {
-    return await invoke('plugin:git|git_stash_drop', { repoPath, stashId });
+async function gitStashPop(repoPath, stashId) {
+  return await invoke("plugin:git|git_stash_pop", { repoPath, stashId });
 }
-// Reset/Revert
-export async function gitReset(repoPath, options) {
-    return await invoke('plugin:git|git_reset', { repoPath, options });
+async function gitStashDrop(repoPath, stashId) {
+  return await invoke("plugin:git|git_stash_drop", { repoPath, stashId });
 }
-export async function gitRevert(repoPath, commit) {
-    return await invoke('plugin:git|git_revert', { repoPath, commit });
+async function gitReset(repoPath, options) {
+  return await invoke("plugin:git|git_reset", { repoPath, options });
 }
-export async function gitCherryPick(repoPath, commit) {
-    return await invoke('plugin:git|git_cherry_pick', { repoPath, commit });
+async function gitRevert(repoPath, commit) {
+  return await invoke("plugin:git|git_revert", { repoPath, commit });
 }
-// Tags
-export async function gitTags(repoPath) {
-    return await invoke('plugin:git|git_tags', { repoPath });
+async function gitCherryPick(repoPath, commit) {
+  return await invoke("plugin:git|git_cherry_pick", { repoPath, commit });
 }
-export async function gitCreateTag(repoPath, tagName, message) {
-    return await invoke('plugin:git|git_create_tag', { repoPath, tagName, message });
+async function gitTags(repoPath) {
+  return await invoke("plugin:git|git_tags", { repoPath });
 }
-export async function gitDeleteTag(repoPath, tagName) {
-    return await invoke('plugin:git|git_delete_tag', { repoPath, tagName });
+async function gitCreateTag(repoPath, tagName, message) {
+  return await invoke("plugin:git|git_create_tag", { repoPath, tagName, message });
 }
-// Repository
-export async function gitClone(url, path) {
-    return await invoke('plugin:git|git_clone', { url, path });
+async function gitDeleteTag(repoPath, tagName) {
+  return await invoke("plugin:git|git_delete_tag", { repoPath, tagName });
 }
-export async function gitInit(path) {
-    return await invoke('plugin:git|git_init', { path });
+async function gitClone(url, path) {
+  return await invoke("plugin:git|git_clone", { url, path });
 }
-// Config
-export async function gitConfigGet(repoPath, key) {
-    return await invoke('plugin:git|git_config_get', { repoPath, key });
+async function gitInit(path) {
+  return await invoke("plugin:git|git_init", { path });
 }
-export async function gitConfigSet(repoPath, key, value) {
-    return await invoke('plugin:git|git_config_set', { repoPath, key, value });
+async function gitConfigGet(repoPath, key) {
+  return await invoke("plugin:git|git_config_get", { repoPath, key });
 }
-// Blame
-export async function gitBlame(repoPath, filePath) {
-    return await invoke('plugin:git|git_blame', { repoPath, filePath });
+async function gitConfigSet(repoPath, key, value) {
+  return await invoke("plugin:git|git_config_set", { repoPath, key, value });
 }
-export async function gitShowCommit(repoPath, commit) {
-    return await invoke('plugin:git|git_show_commit', { repoPath, commit });
+async function gitBlame(repoPath, filePath) {
+  return await invoke("plugin:git|git_blame", { repoPath, filePath });
 }
+async function gitShowCommit(repoPath, commit) {
+  return await invoke("plugin:git|git_show_commit", { repoPath, commit });
+}
+exports.gitAddRemote = gitAddRemote;
+exports.gitBlame = gitBlame;
+exports.gitBranches = gitBranches;
+exports.gitCheckout = gitCheckout;
+exports.gitCherryPick = gitCherryPick;
+exports.gitClone = gitClone;
+exports.gitCommit = gitCommit;
+exports.gitConfigGet = gitConfigGet;
+exports.gitConfigSet = gitConfigSet;
+exports.gitCreateBranch = gitCreateBranch;
+exports.gitCreateTag = gitCreateTag;
+exports.gitDeleteBranch = gitDeleteBranch;
+exports.gitDeleteTag = gitDeleteTag;
+exports.gitDiff = gitDiff;
+exports.gitDiffFile = gitDiffFile;
+exports.gitFetch = gitFetch;
+exports.gitInit = gitInit;
+exports.gitLog = gitLog;
+exports.gitMerge = gitMerge;
+exports.gitPull = gitPull;
+exports.gitPush = gitPush;
+exports.gitRemotes = gitRemotes;
+exports.gitRemoveRemote = gitRemoveRemote;
+exports.gitReset = gitReset;
+exports.gitRevert = gitRevert;
+exports.gitShowCommit = gitShowCommit;
+exports.gitStage = gitStage;
+exports.gitStageAll = gitStageAll;
+exports.gitStash = gitStash;
+exports.gitStashApply = gitStashApply;
+exports.gitStashDrop = gitStashDrop;
+exports.gitStashList = gitStashList;
+exports.gitStashPop = gitStashPop;
+exports.gitStatus = gitStatus;
+exports.gitTags = gitTags;
+exports.gitUnstage = gitUnstage;
+exports.gitUnstageAll = gitUnstageAll;
+//# sourceMappingURL=index.js.map

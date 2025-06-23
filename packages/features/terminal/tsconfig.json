@@ -8,11 +8,5 @@
     "jsx": "react-jsx"
   },
   "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist"],
-  "references": [
-    { "path": "../../core" },
-    { "path": "../../hooks" },
-    { "path": "../../types" },
-    { "path": "../../ui" }
-  ]
+  "exclude": ["node_modules", "dist"]
 }

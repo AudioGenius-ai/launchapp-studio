@@ -1,20 +1,13 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ChatInterface } from './ChatInterface';
 import { SessionTabs } from './SessionTabs';
 import {
-  ClaudeService,
-  AIManagerService,
-  AIProviderRegistry
-} from '@code-pilot/core';
-import {
   AISession,
-  AIProvider,
-  AIProviderType,
   SendMessageRequest,
   StreamChunk,
   AIEvent,
   CreateSessionOptions
-} from '@code-pilot/types';
+} from '../types';
 import { useClaudeService } from '../services/useClaudeService';
 import { useClaudeContext } from '../services/useClaudeContext';
 
@@ -47,25 +40,25 @@ export const ClaudePanel: React.FC<ClaudePanelProps> = ({
     if (!service) return;
 
     const handlers = [
-      service.on(AIEvent.SessionCreated, (session: AISession) => {
+      service.subscribe(AIEvent.SESSION_CREATED, (session: AISession) => {
         setSessions(prev => [...prev, session]);
         setActiveSessionId(session.id);
       }),
-      service.on(AIEvent.SessionDeleted, ({ sessionId }: { sessionId: string }) => {
+      service.subscribe(AIEvent.SESSION_ENDED, ({ sessionId }: { sessionId: string }) => {
         setSessions(prev => prev.filter(s => s.id !== sessionId));
         if (activeSessionId === sessionId) {
           setActiveSessionId(sessions[0]?.id || null);
         }
       }),
-      service.on(AIEvent.SessionUpdated, (session: AISession) => {
+      service.subscribe(AIEvent.SESSION_UPDATED, (session: AISession) => {
         setSessions(prev => prev.map(s => s.id === session.id ? session : s));
       }),
-      service.on(AIEvent.MessageStreaming, (chunk: StreamChunk) => {
+      service.subscribe(AIEvent.MESSAGE_STREAMING, (chunk: StreamChunk) => {
         if (chunk.sessionId === activeSessionId) {
           setStreamingContent(chunk.content);
         }
       }),
-      service.on(AIEvent.MessageCompleted, () => {
+      service.subscribe(AIEvent.MESSAGE_COMPLETE, () => {
         setIsStreaming(false);
         setStreamingContent('');
       })
@@ -95,6 +88,7 @@ export const ClaudePanel: React.FC<ClaudePanelProps> = ({
 
     try {
       const options: CreateSessionOptions = {
+        providerId: 'claude-default',
         name: name || `Session ${new Date().toLocaleString()}`,
         context: currentContext,
         settings: {
@@ -131,7 +125,7 @@ export const ClaudePanel: React.FC<ClaudePanelProps> = ({
       // Use streaming for better UX
       await service.sendStreamingMessage(
         request,
-        (chunk: StreamChunk) => {
+        (_chunk: StreamChunk) => {
           // Streaming is handled by event listeners
         }
       );

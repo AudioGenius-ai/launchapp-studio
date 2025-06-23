@@ -64,7 +64,7 @@ export interface KeyboardSettings {
   keyBindingMode: 'default' | 'vim' | 'emacs';
 }
 
-export interface AIProviderConfig {
+export interface AIProviderSettings {
   provider: 'openai' | 'anthropic' | 'google' | 'azure' | 'local';
   apiKey?: string;
   endpoint?: string;
@@ -77,7 +77,7 @@ export interface AIProviderConfig {
 export interface AISettings {
   enabled: boolean;
   defaultProvider: string;
-  providers: Record<string, AIProviderConfig>;
+  providers: Record<string, AIProviderSettings>;
   autoComplete: {
     enabled: boolean;
     triggerDelay: number;

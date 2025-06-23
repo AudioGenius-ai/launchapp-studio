@@ -1,1478 +1,799 @@
-use axum::{
-    extract::{Path, State},
-    http::{StatusCode, HeaderMap},
-    response::{Json, sse::{Event, Sse}},
-    routing::{get, post},
-    Router,
+use anyhow::Result;
+use chrono::Utc;
+use rmcp::{
+    ServerHandler, ServiceExt,
+    model::{ServerCapabilities, ServerInfo},
+    schemars, tool,
 };
 use serde::{Deserialize, Serialize};
-use serde_json::json;
-use std::{net::SocketAddr, sync::Arc, time::Duration};
-use tower_http::cors::CorsLayer;
-use futures::stream::{self, Stream};
-use std::convert::Infallible;
-use tokio_stream::StreamExt as _;
+use serde_json::Value;
+use std::collections::HashMap;
+use tokio::io::{stdin, stdout};
+use tracing::info;
+use uuid::Uuid;
 
-#[derive(Clone)]
-struct AppState {
-    started_at: chrono::DateTime<chrono::Utc>,
-    port: u16,
+// Project Management Data Structures
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Project {
+    pub id: String,
+    pub name: String,
+    pub key: String,
+    pub description: String,
+    pub owner: String,
+    pub created_at: String,
+    pub updated_at: String,
+    pub settings: ProjectSettings,
+    pub members: Vec<ProjectMember>,
+    pub sprints: Vec<Sprint>,
 }
 
-#[derive(Serialize)]
-struct HealthResponse {
-    status: &'static str,
-    port: u16,
-    #[serde(rename = "startedAt")]
-    started_at: String,
-    uptime: f64,
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ProjectSettings {
+    pub task_prefix: String,
+    pub default_assignee: Option<String>,
+    pub custom_fields: HashMap<String, Value>,
+    pub workflow_states: Vec<String>,
+    pub issue_types: Vec<String>,
+    pub priorities: Vec<String>,
 }
 
-#[derive(Deserialize, Serialize)]
-struct JsonRpcRequest {
-    jsonrpc: String,
-    id: serde_json::Value,
-    method: String,
-    params: Option<serde_json::Value>,
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ProjectMember {
+    pub user_id: String,
+    pub role: String,
+    pub joined_at: String,
 }
 
-#[derive(Serialize)]
-struct JsonRpcResponse {
-    jsonrpc: String,
-    id: serde_json::Value,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    result: Option<serde_json::Value>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    error: Option<JsonRpcError>,
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Task {
+    pub id: String,
+    pub project_id: String,
+    pub key: String,
+    pub title: String,
+    pub description: String,
+    pub status: String,
+    pub priority: String,
+    pub task_type: String,
+    pub assignee: Option<String>,
+    pub reporter: String,
+    pub created_at: String,
+    pub updated_at: String,
+    pub due_date: Option<String>,
+    pub estimate: Option<u32>,
+    pub time_spent: Option<u32>,
+    pub sprint_id: Option<String>,
+    pub parent_id: Option<String>,
+    pub labels: Vec<String>,
+    pub comments: Vec<TaskComment>,
+    pub attachments: Vec<TaskAttachment>,
+    pub custom_fields: HashMap<String, Value>,
+    pub task_number: u32,
 }
 
-#[derive(Serialize)]
-struct JsonRpcError {
-    code: i32,
-    message: String,
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TaskComment {
+    pub id: String,
+    pub author: String,
+    pub content: String,
+    pub created_at: String,
+    pub updated_at: Option<String>,
 }
 
-#[derive(Deserialize)]
-struct TauriBridgeRequest {
-    #[serde(rename = "sessionId")]
-    session_id: String,
-    args: serde_json::Value,
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TaskAttachment {
+    pub id: String,
+    pub filename: String,
+    pub size: u64,
+    pub content_type: String,
+    pub uploaded_by: String,
+    pub uploaded_at: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Document {
+    pub id: String,
+    pub project_id: String,
+    pub title: String,
+    pub content: String,
+    pub status: String,
+    pub template: String,
+    pub author: String,
+    pub created_at: String,
+    pub updated_at: String,
+    pub tags: Vec<String>,
+    pub parent_id: Option<String>,
+    pub permissions: DocumentPermissions,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DocumentPermissions {
+    pub read: Vec<String>,
+    pub write: Vec<String>,
+    pub admin: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Sprint {
+    pub id: String,
+    pub project_id: String,
+    pub name: String,
+    pub start_date: String,
+    pub end_date: String,
+    pub status: String,
+    pub goal: String,
+    pub created_at: String,
+    pub updated_at: String,
+}
+
+// Request/Response types
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CreateProjectRequest {
+    pub name: String,
+    pub key: String,
+    pub description: String,
+    pub owner: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CreateTaskRequest {
+    pub title: String,
+    pub description: String,
+    pub priority: String,
+    pub task_type: String,
+    pub assignee: Option<String>,
+    pub due_date: Option<String>,
+    pub estimate: Option<u32>,
+    pub labels: Vec<String>,
+    pub parent_id: Option<String>,
+    pub custom_fields: HashMap<String, Value>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CreateDocumentRequest {
+    pub title: String,
+    pub content: Option<String>,
+    pub template: String,
+    pub tags: Vec<String>,
+    pub parent_id: Option<String>,
+    pub permissions: DocumentPermissions,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CreateSprintRequest {
+    pub name: String,
+    pub start_date: String,
+    pub end_date: String,
+    pub goal: String,
+}
+
+// Main Project Management Service
+#[derive(Debug, Clone)]
+pub struct ProjectManagementServer {
+    // In-memory storage for demo purposes
+    // In a real implementation, this would connect to actual storage
+    #[allow(dead_code)]
+    projects: HashMap<String, Project>,
+    #[allow(dead_code)]
+    tasks: HashMap<String, Vec<Task>>,
+    #[allow(dead_code)]
+    documents: HashMap<String, Vec<Document>>,
+    #[allow(dead_code)]
+    sprints: HashMap<String, Vec<Sprint>>,
+}
+
+impl ProjectManagementServer {
+    pub fn new() -> Self {
+        Self {
+            projects: HashMap::new(),
+            tasks: HashMap::new(),
+            documents: HashMap::new(),
+            sprints: HashMap::new(),
+        }
+    }
+
+    #[allow(dead_code)]
+    fn get_project_context(&self, headers: &HashMap<String, String>) -> (String, String) {
+        let project_id = headers
+            .get("x-project-id")
+            .cloned()
+            .unwrap_or_else(|| "default".to_string());
+        let workspace_path = headers
+            .get("x-workspace-path")
+            .cloned()
+            .unwrap_or_else(|| ".".to_string());
+        (project_id, workspace_path)
+    }
+
+    #[allow(dead_code)]
+    fn create_default_project(&self, project_id: &str) -> Project {
+        Project {
+            id: project_id.to_string(),
+            name: format!("Project {}", project_id),
+            key: project_id.to_uppercase(),
+            description: "Default project".to_string(),
+            owner: "system".to_string(),
+            created_at: Utc::now().to_rfc3339(),
+            updated_at: Utc::now().to_rfc3339(),
+            settings: ProjectSettings {
+                task_prefix: project_id.to_uppercase(),
+                default_assignee: None,
+                custom_fields: HashMap::new(),
+                workflow_states: vec![
+                    "todo".to_string(),
+                    "in_progress".to_string(),
+                    "in_review".to_string(),
+                    "done".to_string(),
+                ],
+                issue_types: vec![
+                    "story".to_string(),
+                    "task".to_string(),
+                    "bug".to_string(),
+                    "epic".to_string(),
+                ],
+                priorities: vec![
+                    "low".to_string(),
+                    "medium".to_string(),
+                    "high".to_string(),
+                    "urgent".to_string(),
+                ],
+            },
+            members: vec![],
+            sprints: vec![],
+        }
+    }
+}
+
+#[tool(tool_box)]
+impl ProjectManagementServer {
+    /// Create a new project
+    #[tool(description = "Create a new project")]
+    async fn pm_create_project(
+        &self,
+        #[tool(param)]
+        #[schemars(description = "Project name")]
+        name: String,
+        #[tool(param)]
+        #[schemars(description = "Project key (e.g., PROJ)")]
+        key: String,
+        #[tool(param)]
+        #[schemars(description = "Project description")]
+        description: String,
+        #[tool(param)]
+        #[schemars(description = "Project owner")]
+        owner: String,
+    ) -> String {
+        let project_id = Uuid::new_v4().to_string();
+        let _project = Project {
+            id: project_id.clone(),
+            name: name.clone(),
+            key: key.clone(),
+            description,
+            owner,
+            created_at: Utc::now().to_rfc3339(),
+            updated_at: Utc::now().to_rfc3339(),
+            settings: ProjectSettings {
+                task_prefix: key,
+                default_assignee: None,
+                custom_fields: HashMap::new(),
+                workflow_states: vec![
+                    "todo".to_string(),
+                    "in_progress".to_string(),
+                    "done".to_string(),
+                ],
+                issue_types: vec!["story".to_string(), "task".to_string(), "bug".to_string()],
+                priorities: vec![
+                    "low".to_string(),
+                    "medium".to_string(),
+                    "high".to_string(),
+                    "urgent".to_string(),
+                ],
+            },
+            members: vec![],
+            sprints: vec![],
+        };
+
+        info!("Created project: {} ({})", name, project_id);
+        format!("✅ Created project '{}' with ID: {}", name, project_id)
+    }
+
+    /// List all projects
+    #[tool(description = "List all projects")]
+    async fn pm_list_projects(&self) -> String {
+        info!("Listing all projects");
+        "📋 Available projects:\n- Default Project (default)\n- Sample Project (sample)".to_string()
+    }
+
+    /// Get project details
+    #[tool(description = "Get project details")]
+    async fn pm_get_project(&self) -> String {
+        info!("Getting project details for current project");
+        "📁 Project Details:\nName: Sample Project\nKey: SAMPLE\nStatus: Active\nTasks: 5\nDocuments: 3".to_string()
+    }
+
+    /// Create a new task in the current project
+    #[tool(description = "Create a new task in the current project")]
+    async fn pm_create_task(
+        &self,
+        #[tool(param)]
+        #[schemars(description = "Task title")]
+        title: String,
+        #[tool(param)]
+        #[schemars(description = "Task description")]
+        _description: String,
+        #[tool(param)]
+        #[schemars(description = "Task priority (low, medium, high, urgent)")]
+        priority: String,
+        #[tool(param)]
+        #[schemars(description = "Task type (story, task, bug, epic)")]
+        task_type: String,
+        #[tool(param)]
+        #[schemars(description = "Assignee (optional)")]
+        assignee: Option<String>,
+        #[tool(param)]
+        #[schemars(description = "Due date (YYYY-MM-DD, optional)")]
+        _due_date: Option<String>,
+        #[tool(param)]
+        #[schemars(description = "Time estimate in hours (optional)")]
+        _estimate: Option<u32>,
+        #[tool(param)]
+        #[schemars(description = "Labels (comma-separated, optional)")]
+        labels: Option<String>,
+    ) -> String {
+        let task_id = Uuid::new_v4().to_string();
+        let task_number = 1; // Would increment based on project
+
+        let _labels_vec = labels
+            .map(|l| l.split(',').map(|s| s.trim().to_string()).collect())
+            .unwrap_or_else(Vec::new);
+
+        info!("Created task: {} ({})", title, task_id);
+        format!(
+            "✅ Created task '{}' (TASK-{})\nID: {}\nPriority: {}\nType: {}\nAssignee: {}",
+            title,
+            task_number,
+            task_id,
+            priority,
+            task_type,
+            assignee.unwrap_or("Unassigned".to_string())
+        )
+    }
+
+    /// List tasks in the current project
+    #[tool(description = "List tasks in the current project")]
+    async fn pm_list_tasks(
+        &self,
+        #[tool(param)]
+        #[schemars(description = "Filter by status (optional)")]
+        status_filter: Option<String>,
+        #[tool(param)]
+        #[schemars(description = "Filter by assignee (optional)")]
+        assignee_filter: Option<String>,
+        #[tool(param)]
+        #[schemars(description = "Filter by priority (optional)")]
+        priority_filter: Option<String>,
+    ) -> String {
+        info!("Listing tasks with filters");
+        let mut result = "📋 Tasks in current project:\n".to_string();
+        
+        result.push_str("• TASK-1: Fix login bug [HIGH] - In Progress (john@example.com)\n");
+        result.push_str("• TASK-2: Add user dashboard [MEDIUM] - Todo (jane@example.com)\n");
+        result.push_str("• TASK-3: Update documentation [LOW] - Done (doc@example.com)\n");
+
+        if let Some(status) = status_filter {
+            result.push_str(&format!("\n🔍 Filtered by status: {}", status));
+        }
+        if let Some(assignee) = assignee_filter {
+            result.push_str(&format!("\n👤 Filtered by assignee: {}", assignee));
+        }
+        if let Some(priority) = priority_filter {
+            result.push_str(&format!("\n⚡ Filtered by priority: {}", priority));
+        }
+
+        result
+    }
+
+    /// Get task details
+    #[tool(description = "Get task details")]
+    async fn pm_get_task(
+        &self,
+        #[tool(param)]
+        #[schemars(description = "Task ID")]
+        task_id: String,
+    ) -> String {
+        info!("Getting task details for: {}", task_id);
+        format!(
+            "📝 Task Details:\nID: {}\nTitle: Fix login bug\nStatus: In Progress\nPriority: High\nAssignee: john@example.com\nCreated: 2024-01-15\nDue: 2024-01-20\nDescription: Users are unable to log in with their credentials",
+            task_id
+        )
+    }
+
+    /// Update task details
+    #[tool(description = "Update task details")]
+    async fn pm_update_task(
+        &self,
+        #[tool(param)]
+        #[schemars(description = "Task ID")]
+        task_id: String,
+        #[tool(param)]
+        #[schemars(description = "New title (optional)")]
+        title: Option<String>,
+        #[tool(param)]
+        #[schemars(description = "New status (optional)")]
+        status: Option<String>,
+        #[tool(param)]
+        #[schemars(description = "New priority (optional)")]
+        priority: Option<String>,
+        #[tool(param)]
+        #[schemars(description = "New assignee (optional)")]
+        assignee: Option<String>,
+    ) -> String {
+        info!("Updating task: {}", task_id);
+        let mut updates = vec![];
+        
+        if let Some(t) = title {
+            updates.push(format!("Title: {}", t));
+        }
+        if let Some(s) = status {
+            updates.push(format!("Status: {}", s));
+        }
+        if let Some(p) = priority {
+            updates.push(format!("Priority: {}", p));
+        }
+        if let Some(a) = assignee {
+            updates.push(format!("Assignee: {}", a));
+        }
+
+        format!("✅ Updated task {}\nChanges: {}", task_id, updates.join(", "))
+    }
+
+    /// Delete a task
+    #[tool(description = "Delete a task")]
+    async fn pm_delete_task(
+        &self,
+        #[tool(param)]
+        #[schemars(description = "Task ID")]
+        task_id: String,
+    ) -> String {
+        info!("Deleting task: {}", task_id);
+        format!("🗑️ Deleted task: {}", task_id)
+    }
+
+    /// Move task to a sprint
+    #[tool(description = "Move task to a sprint")]
+    async fn pm_move_task_to_sprint(
+        &self,
+        #[tool(param)]
+        #[schemars(description = "Task ID")]
+        task_id: String,
+        #[tool(param)]
+        #[schemars(description = "Sprint ID (leave empty to remove from sprint)")]
+        sprint_id: Option<String>,
+    ) -> String {
+        match sprint_id {
+            Some(sid) => {
+                info!("Moving task {} to sprint {}", task_id, sid);
+                format!("🔄 Moved task {} to sprint {}", task_id, sid)
+            }
+            None => {
+                info!("Removing task {} from sprint", task_id);
+                format!("🔄 Removed task {} from sprint", task_id)
+            }
+        }
+    }
+
+    /// Add comment to a task
+    #[tool(description = "Add comment to a task")]
+    async fn pm_add_task_comment(
+        &self,
+        #[tool(param)]
+        #[schemars(description = "Task ID")]
+        task_id: String,
+        #[tool(param)]
+        #[schemars(description = "Comment content")]
+        content: String,
+        #[tool(param)]
+        #[schemars(description = "Author")]
+        author: String,
+    ) -> String {
+        info!("Adding comment to task: {}", task_id);
+        format!("💬 Added comment to task {}\nAuthor: {}\nContent: {}", task_id, author, content)
+    }
+
+    /// Create a new document in the current project
+    #[tool(description = "Create a new document in the current project")]
+    async fn pm_create_document(
+        &self,
+        #[tool(param)]
+        #[schemars(description = "Document title")]
+        title: String,
+        #[tool(param)]
+        #[schemars(description = "Document template (page, blog, requirements, api_doc, meeting, troubleshooting, user_guide, technical_spec)")]
+        template: String,
+        #[tool(param)]
+        #[schemars(description = "Document content (markdown, optional)")]
+        _content: Option<String>,
+        #[tool(param)]
+        #[schemars(description = "Tags (comma-separated, optional)")]
+        tags: Option<String>,
+    ) -> String {
+        let document_id = Uuid::new_v4().to_string();
+        
+        let tags_vec = tags
+            .map(|t| t.split(',').map(|s| s.trim().to_string()).collect())
+            .unwrap_or_else(Vec::new);
+
+        info!("Created document: {} ({})", title, document_id);
+        format!(
+            "📄 Created document '{}'\nID: {}\nTemplate: {}\nTags: {:?}",
+            title, document_id, template, tags_vec
+        )
+    }
+
+    /// List documents in the current project
+    #[tool(description = "List documents in the current project")]
+    async fn pm_list_documents(
+        &self,
+        #[tool(param)]
+        #[schemars(description = "Filter by status (optional)")]
+        status_filter: Option<String>,
+        #[tool(param)]
+        #[schemars(description = "Filter by template (optional)")]
+        template_filter: Option<String>,
+        #[tool(param)]
+        #[schemars(description = "Filter by tags (comma-separated, optional)")]
+        tags_filter: Option<String>,
+    ) -> String {
+        info!("Listing documents with filters");
+        let mut result = "📚 Documents in current project:\n".to_string();
+        
+        result.push_str("• Project Requirements [REQUIREMENTS] - Published\n");
+        result.push_str("• API Documentation [API_DOC] - Draft\n");
+        result.push_str("• User Guide [USER_GUIDE] - Published\n");
+        result.push_str("• Meeting Notes 2024-01-15 [MEETING] - Published\n");
+
+        if let Some(status) = status_filter {
+            result.push_str(&format!("\n🔍 Filtered by status: {}", status));
+        }
+        if let Some(template) = template_filter {
+            result.push_str(&format!("\n📋 Filtered by template: {}", template));
+        }
+        if let Some(tags) = tags_filter {
+            result.push_str(&format!("\n🏷️ Filtered by tags: {}", tags));
+        }
+
+        result
+    }
+
+    /// Get document details
+    #[tool(description = "Get document details")]
+    async fn pm_get_document(
+        &self,
+        #[tool(param)]
+        #[schemars(description = "Document ID")]
+        document_id: String,
+    ) -> String {
+        info!("Getting document details for: {}", document_id);
+        format!(
+            "📄 Document Details:\nID: {}\nTitle: Project Requirements\nTemplate: Requirements\nStatus: Published\nAuthor: product@example.com\nCreated: 2024-01-10\nTags: requirements, specs, v1.0\n\nContent Preview:\n# Project Requirements\n\n## Overview\nThis document outlines the requirements for...",
+            document_id
+        )
+    }
+
+    /// Update document details
+    #[tool(description = "Update document details")]
+    async fn pm_update_document(
+        &self,
+        #[tool(param)]
+        #[schemars(description = "Document ID")]
+        document_id: String,
+        #[tool(param)]
+        #[schemars(description = "New title (optional)")]
+        title: Option<String>,
+        #[tool(param)]
+        #[schemars(description = "New content (optional)")]
+        content: Option<String>,
+        #[tool(param)]
+        #[schemars(description = "New status (optional)")]
+        status: Option<String>,
+        #[tool(param)]
+        #[schemars(description = "New tags (comma-separated, optional)")]
+        tags: Option<String>,
+    ) -> String {
+        info!("Updating document: {}", document_id);
+        let mut updates = vec![];
+        
+        if let Some(t) = title {
+            updates.push(format!("Title: {}", t));
+        }
+        if let Some(_c) = content {
+            updates.push("Content: Updated".to_string());
+        }
+        if let Some(s) = status {
+            updates.push(format!("Status: {}", s));
+        }
+        if let Some(t) = tags {
+            updates.push(format!("Tags: {}", t));
+        }
+
+        format!("✅ Updated document {}\nChanges: {}", document_id, updates.join(", "))
+    }
+
+    /// Delete a document
+    #[tool(description = "Delete a document")]
+    async fn pm_delete_document(
+        &self,
+        #[tool(param)]
+        #[schemars(description = "Document ID")]
+        document_id: String,
+    ) -> String {
+        info!("Deleting document: {}", document_id);
+        format!("🗑️ Deleted document: {}", document_id)
+    }
+
+    /// Render document to HTML
+    #[tool(description = "Render document to HTML")]
+    async fn pm_render_document(
+        &self,
+        #[tool(param)]
+        #[schemars(description = "Document ID")]
+        document_id: String,
+    ) -> String {
+        info!("Rendering document: {}", document_id);
+        format!("🎨 Rendered document {} to HTML\nOutput: <h1>Project Requirements</h1><p>This document outlines...</p>", document_id)
+    }
+
+    /// Create a new sprint in the current project
+    #[tool(description = "Create a new sprint in the current project")]
+    async fn pm_create_sprint(
+        &self,
+        #[tool(param)]
+        #[schemars(description = "Sprint name")]
+        name: String,
+        #[tool(param)]
+        #[schemars(description = "Start date (YYYY-MM-DD)")]
+        start_date: String,
+        #[tool(param)]
+        #[schemars(description = "End date (YYYY-MM-DD)")]
+        end_date: String,
+        #[tool(param)]
+        #[schemars(description = "Sprint goal")]
+        goal: String,
+    ) -> String {
+        let sprint_id = Uuid::new_v4().to_string();
+
+        info!("Created sprint: {} ({})", name, sprint_id);
+        format!(
+            "🏃 Created sprint '{}'\nID: {}\nDuration: {} to {}\nGoal: {}",
+            name, sprint_id, start_date, end_date, goal
+        )
+    }
+
+    /// List sprints in the current project
+    #[tool(description = "List sprints in the current project")]
+    async fn pm_list_sprints(&self) -> String {
+        info!("Listing sprints");
+        "🏃 Sprints in current project:\n• Sprint 1 [COMPLETED] - 2024-01-01 to 2024-01-14\n• Sprint 2 [ACTIVE] - 2024-01-15 to 2024-01-28\n• Sprint 3 [PLANNED] - 2024-01-29 to 2024-02-11".to_string()
+    }
+
+    /// Get sprint details
+    #[tool(description = "Get sprint details")]
+    async fn pm_get_sprint(
+        &self,
+        #[tool(param)]
+        #[schemars(description = "Sprint ID")]
+        sprint_id: String,
+    ) -> String {
+        info!("Getting sprint details for: {}", sprint_id);
+        format!(
+            "🏃 Sprint Details:\nID: {}\nName: Sprint 2\nStatus: Active\nDuration: 2024-01-15 to 2024-01-28\nGoal: Complete user authentication and dashboard\nTasks: 8 total, 3 completed, 5 in progress",
+            sprint_id
+        )
+    }
+
+    /// Start a sprint
+    #[tool(description = "Start a sprint")]
+    async fn pm_start_sprint(
+        &self,
+        #[tool(param)]
+        #[schemars(description = "Sprint ID")]
+        sprint_id: String,
+    ) -> String {
+        info!("Starting sprint: {}", sprint_id);
+        format!("🚀 Started sprint: {}", sprint_id)
+    }
+
+    /// Complete a sprint
+    #[tool(description = "Complete a sprint")]
+    async fn pm_complete_sprint(
+        &self,
+        #[tool(param)]
+        #[schemars(description = "Sprint ID")]
+        sprint_id: String,
+    ) -> String {
+        info!("Completing sprint: {}", sprint_id);
+        format!("🎯 Completed sprint: {}", sprint_id)
+    }
+
+    /// Search tasks in the current project
+    #[tool(description = "Search tasks in the current project")]
+    async fn pm_search_tasks(
+        &self,
+        #[tool(param)]
+        #[schemars(description = "Search query")]
+        query: String,
+    ) -> String {
+        info!("Searching tasks for: {}", query);
+        format!("🔍 Search results for '{}' in tasks:\n• TASK-1: Fix login bug (matches: 'login')\n• TASK-5: Login page redesign (matches: 'login')", query)
+    }
+
+    /// Search documents in the current project
+    #[tool(description = "Search documents in the current project")]
+    async fn pm_search_documents(
+        &self,
+        #[tool(param)]
+        #[schemars(description = "Search query")]
+        query: String,
+    ) -> String {
+        info!("Searching documents for: {}", query);
+        format!("🔍 Search results for '{}' in documents:\n• API Documentation (matches in title)\n• Technical Specifications (matches in content)", query)
+    }
+
+    /// Search all items (tasks and documents) in the current project
+    #[tool(description = "Search all items (tasks and documents) in the current project")]
+    async fn pm_search_all(
+        &self,
+        #[tool(param)]
+        #[schemars(description = "Search query")]
+        query: String,
+    ) -> String {
+        info!("Searching all items for: {}", query);
+        format!("🔍 Search results for '{}':\n\nTasks:\n• TASK-1: Fix login bug\n• TASK-5: Login page redesign\n\nDocuments:\n• API Documentation\n• Technical Specifications\n\nTotal: 4 results", query)
+    }
+
+    /// Get project statistics
+    #[tool(description = "Get project statistics")]
+    async fn pm_get_project_statistics(&self) -> String {
+        info!("Getting project statistics");
+        "📊 Project Statistics:\n• Total Tasks: 12\n• Completed: 5 (42%)\n• In Progress: 4 (33%)\n• Todo: 3 (25%)\n• Total Documents: 8\n• Active Sprints: 1\n• Team Members: 6".to_string()
+    }
+}
+
+impl ServerHandler for ProjectManagementServer {
+    fn get_info(&self) -> ServerInfo {
+        ServerInfo {
+            instructions: Some("MCP server for project management operations including tasks, documents, and sprints with project context awareness".to_string()),
+            capabilities: ServerCapabilities::builder().enable_tools().build(),
+            ..Default::default()
+        }
+    }
 }
 
 #[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    // Initialize tracing
-    tracing_subscriber::fmt::init();
+async fn main() -> Result<()> {
+    // Initialize logging
+    tracing_subscriber::fmt()
+        .with_env_filter(
+            tracing_subscriber::EnvFilter::try_from_default_env()
+                .unwrap_or_else(|_| tracing_subscriber::EnvFilter::new("info")),
+        )
+        .init();
 
-    // Find available port
-    let port = portpicker::pick_unused_port().expect("No ports available");
-    
-    let state = Arc::new(AppState {
-        started_at: chrono::Utc::now(),
-        port,
-    });
+    info!("Starting Code Pilot Project Management MCP Server");
 
-    // Build our application with routes
-    let app = Router::new()
-        .route("/health", get(health_check))
-        .route("/mcp", post(handle_mcp))
-        .route("/mcp/sse/:session_id", get(handle_sse))
-        .route("/mcp/messages", post(handle_legacy_message))
-        .route("/tauri-bridge/:method", post(handle_tauri_bridge))
-        .layer(CorsLayer::permissive())
-        .with_state(state);
+    // Create the service
+    let service = ProjectManagementServer::new();
 
-    let addr = SocketAddr::from(([127, 0, 0, 1], port));
-    
-    // Write port file for Tauri
-    tokio::fs::write(".sidecar-port", port.to_string())
-        .await
-        .expect("Failed to write port file");
-    
-    println!("Sidecar server running on http://localhost:{}", port);
-    println!("Port file written: .sidecar-port");
+    // Create stdio transport
+    let transport = (stdin(), stdout());
 
-    // Run the server
-    let listener = tokio::net::TcpListener::bind(addr).await?;
-    axum::serve(listener, app).await?;
+    // Start the server
+    let server = service.serve(transport).await?;
+
+    info!("MCP Server started and listening on stdio");
+
+    // Wait for server to finish
+    let quit_reason = server.waiting().await?;
+    info!("MCP Server shutting down: {:?}", quit_reason);
 
     Ok(())
-}
-
-async fn health_check(State(state): State<Arc<AppState>>) -> Json<HealthResponse> {
-    let uptime = chrono::Utc::now()
-        .signed_duration_since(state.started_at)
-        .num_seconds() as f64;
-    
-    Json(HealthResponse {
-        status: "ok",
-        port: state.port,
-        started_at: state.started_at.to_rfc3339(),
-        uptime,
-    })
-}
-
-async fn handle_mcp(
-    State(_state): State<Arc<AppState>>,
-    headers: HeaderMap,
-    Json(request): Json<JsonRpcRequest>,
-) -> Json<JsonRpcResponse> {
-    match request.method.as_str() {
-        "initialize" => {
-            Json(JsonRpcResponse {
-                jsonrpc: "2.0".to_string(),
-                id: request.id,
-                result: Some(json!({
-                    "protocolVersion": "2024-11-05",
-                    "capabilities": {
-                        "tools": {},
-                        "resources": {}
-                    },
-                    "serverInfo": {
-                        "name": "codepilot-ide",
-                        "version": "1.0.0"
-                    }
-                })),
-                error: None,
-            })
-        }
-        "tools/list" => {
-            Json(JsonRpcResponse {
-                jsonrpc: "2.0".to_string(),
-                id: request.id,
-                result: Some(json!({
-                    "tools": get_tool_definitions()
-                })),
-                error: None,
-            })
-        }
-        "tools/call" => {
-            handle_tool_call(headers, request).await
-        }
-        _ => {
-            Json(JsonRpcResponse {
-                jsonrpc: "2.0".to_string(),
-                id: request.id,
-                result: None,
-                error: Some(JsonRpcError {
-                    code: -32601,
-                    message: "Method not found".to_string(),
-                }),
-            })
-        }
-    }
-}
-
-async fn handle_sse(
-    Path(_session_id): Path<String>,
-) -> Sse<impl Stream<Item = Result<Event, Infallible>>> {
-    // Create a simple ping stream for now
-    let stream = stream::repeat_with(|| {
-        Ok(Event::default()
-            .event("ping")
-            .data(json!({"type": "ping", "timestamp": chrono::Utc::now().to_rfc3339()}).to_string()))
-    })
-    .throttle(Duration::from_secs(30));
-
-    Sse::new(stream)
-}
-
-async fn handle_legacy_message(
-    Json(_request): Json<JsonRpcRequest>,
-) -> Json<serde_json::Value> {
-    // Legacy endpoint - just return success
-    Json(json!({
-        "success": true
-    }))
-}
-
-async fn handle_tauri_bridge(
-    Path(method): Path<String>,
-    Json(request): Json<TauriBridgeRequest>,
-) -> Result<Json<serde_json::Value>, StatusCode> {
-    // In production, this would communicate with Tauri
-    // For now, return mock response
-    Ok(Json(json!({
-        "success": true,
-        "result": {
-            "method": method,
-            "sessionId": request.session_id,
-            "args": request.args
-        }
-    })))
-}
-
-async fn handle_tool_call(
-    headers: HeaderMap,
-    request: JsonRpcRequest,
-) -> Json<JsonRpcResponse> {
-    // Extract project context from headers
-    let project_id = headers.get("x-project-id")
-        .and_then(|h| h.to_str().ok())
-        .unwrap_or("default");
-    
-    let workspace_path = headers.get("x-workspace-path")
-        .and_then(|h| h.to_str().ok())
-        .unwrap_or(".");
-
-    if let Some(params) = &request.params {
-        if let Ok(tool_call) = serde_json::from_value::<ToolCallParams>(params.clone()) {
-            match tool_call.name.as_str() {
-                // Project Management Tools
-                "pm_create_project" => execute_pm_create_project(project_id, workspace_path, &tool_call.arguments, &request).await,
-                "pm_list_projects" => execute_pm_list_projects(project_id, workspace_path, &tool_call.arguments, &request).await,
-                "pm_get_project" => execute_pm_get_project(project_id, workspace_path, &tool_call.arguments, &request).await,
-                "pm_update_project" => execute_pm_update_project(project_id, workspace_path, &tool_call.arguments, &request).await,
-                "pm_delete_project" => execute_pm_delete_project(project_id, workspace_path, &tool_call.arguments, &request).await,
-                
-                // Task Management Tools
-                "pm_create_task" => execute_pm_create_task(project_id, workspace_path, &tool_call.arguments, &request).await,
-                "pm_list_tasks" => execute_pm_list_tasks(project_id, workspace_path, &tool_call.arguments, &request).await,
-                "pm_get_task" => execute_pm_get_task(project_id, workspace_path, &tool_call.arguments, &request).await,
-                "pm_update_task" => execute_pm_update_task(project_id, workspace_path, &tool_call.arguments, &request).await,
-                "pm_delete_task" => execute_pm_delete_task(project_id, workspace_path, &tool_call.arguments, &request).await,
-                "pm_move_task_to_sprint" => execute_pm_move_task_to_sprint(project_id, workspace_path, &tool_call.arguments, &request).await,
-                "pm_add_task_comment" => execute_pm_add_task_comment(project_id, workspace_path, &tool_call.arguments, &request).await,
-                
-                // Document Management Tools
-                "pm_create_document" => execute_pm_create_document(project_id, workspace_path, &tool_call.arguments, &request).await,
-                "pm_list_documents" => execute_pm_list_documents(project_id, workspace_path, &tool_call.arguments, &request).await,
-                "pm_get_document" => execute_pm_get_document(project_id, workspace_path, &tool_call.arguments, &request).await,
-                "pm_update_document" => execute_pm_update_document(project_id, workspace_path, &tool_call.arguments, &request).await,
-                "pm_delete_document" => execute_pm_delete_document(project_id, workspace_path, &tool_call.arguments, &request).await,
-                "pm_render_document" => execute_pm_render_document(project_id, workspace_path, &tool_call.arguments, &request).await,
-                
-                // Sprint Management Tools
-                "pm_create_sprint" => execute_pm_create_sprint(project_id, workspace_path, &tool_call.arguments, &request).await,
-                "pm_list_sprints" => execute_pm_list_sprints(project_id, workspace_path, &tool_call.arguments, &request).await,
-                "pm_get_sprint" => execute_pm_get_sprint(project_id, workspace_path, &tool_call.arguments, &request).await,
-                "pm_start_sprint" => execute_pm_start_sprint(project_id, workspace_path, &tool_call.arguments, &request).await,
-                "pm_complete_sprint" => execute_pm_complete_sprint(project_id, workspace_path, &tool_call.arguments, &request).await,
-                
-                // Search Tools
-                "pm_search_tasks" => execute_pm_search_tasks(project_id, workspace_path, &tool_call.arguments, &request).await,
-                "pm_search_documents" => execute_pm_search_documents(project_id, workspace_path, &tool_call.arguments, &request).await,
-                "pm_search_all" => execute_pm_search_all(project_id, workspace_path, &tool_call.arguments, &request).await,
-                
-                // Statistics Tools
-                "pm_get_project_statistics" => execute_pm_get_project_statistics(project_id, workspace_path, &tool_call.arguments, &request).await,
-                
-                _ => {
-                    // Default tool execution for non-PM tools
-                    Json(JsonRpcResponse {
-                        jsonrpc: "2.0".to_string(),
-                        id: request.id,
-                        result: Some(json!({
-                            "content": [{
-                                "type": "text",
-                                "text": format!("Tool '{}' executed in project '{}' at workspace '{}'", tool_call.name, project_id, workspace_path)
-                            }]
-                        })),
-                        error: None,
-                    })
-                }
-            }
-        } else {
-            Json(JsonRpcResponse {
-                jsonrpc: "2.0".to_string(),
-                id: request.id,
-                result: None,
-                error: Some(JsonRpcError {
-                    code: -32602,
-                    message: "Invalid tool call parameters".to_string(),
-                }),
-            })
-        }
-    } else {
-        Json(JsonRpcResponse {
-            jsonrpc: "2.0".to_string(),
-            id: request.id,
-            result: None,
-            error: Some(JsonRpcError {
-                code: -32602,
-                message: "Missing parameters".to_string(),
-            }),
-        })
-    }
-}
-
-#[derive(Deserialize)]
-struct ToolCallParams {
-    name: String,
-    arguments: serde_json::Value,
-}
-
-// Project Management Tool Implementations
-async fn execute_pm_create_project(
-    _project_id: &str,
-    _workspace_path: &str,
-    arguments: &serde_json::Value,
-    request: &JsonRpcRequest,
-) -> Json<JsonRpcResponse> {
-    // This would call the Tauri plugin
-    Json(JsonRpcResponse {
-        jsonrpc: "2.0".to_string(),
-        id: request.id.clone(),
-        result: Some(json!({
-            "content": [{
-                "type": "text",
-                "text": format!("Created project with arguments: {}", arguments)
-            }]
-        })),
-        error: None,
-    })
-}
-
-async fn execute_pm_list_projects(
-    _project_id: &str,
-    _workspace_path: &str,
-    _arguments: &serde_json::Value,
-    request: &JsonRpcRequest,
-) -> Json<JsonRpcResponse> {
-    Json(JsonRpcResponse {
-        jsonrpc: "2.0".to_string(),
-        id: request.id.clone(),
-        result: Some(json!({
-            "content": [{
-                "type": "text",
-                "text": "Listed all projects"
-            }]
-        })),
-        error: None,
-    })
-}
-
-async fn execute_pm_get_project(
-    project_id: &str,
-    _workspace_path: &str,
-    _arguments: &serde_json::Value,
-    request: &JsonRpcRequest,
-) -> Json<JsonRpcResponse> {
-    Json(JsonRpcResponse {
-        jsonrpc: "2.0".to_string(),
-        id: request.id.clone(),
-        result: Some(json!({
-            "content": [{
-                "type": "text",
-                "text": format!("Retrieved project: {}", project_id)
-            }]
-        })),
-        error: None,
-    })
-}
-
-async fn execute_pm_update_project(
-    project_id: &str,
-    _workspace_path: &str,
-    arguments: &serde_json::Value,
-    request: &JsonRpcRequest,
-) -> Json<JsonRpcResponse> {
-    Json(JsonRpcResponse {
-        jsonrpc: "2.0".to_string(),
-        id: request.id.clone(),
-        result: Some(json!({
-            "content": [{
-                "type": "text",
-                "text": format!("Updated project {} with: {}", project_id, arguments)
-            }]
-        })),
-        error: None,
-    })
-}
-
-async fn execute_pm_delete_project(
-    project_id: &str,
-    _workspace_path: &str,
-    _arguments: &serde_json::Value,
-    request: &JsonRpcRequest,
-) -> Json<JsonRpcResponse> {
-    Json(JsonRpcResponse {
-        jsonrpc: "2.0".to_string(),
-        id: request.id.clone(),
-        result: Some(json!({
-            "content": [{
-                "type": "text",
-                "text": format!("Deleted project: {}", project_id)
-            }]
-        })),
-        error: None,
-    })
-}
-
-// Task Management Tool Implementations
-async fn execute_pm_create_task(
-    project_id: &str,
-    _workspace_path: &str,
-    arguments: &serde_json::Value,
-    request: &JsonRpcRequest,
-) -> Json<JsonRpcResponse> {
-    Json(JsonRpcResponse {
-        jsonrpc: "2.0".to_string(),
-        id: request.id.clone(),
-        result: Some(json!({
-            "content": [{
-                "type": "text",
-                "text": format!("Created task in project {} with: {}", project_id, arguments)
-            }]
-        })),
-        error: None,
-    })
-}
-
-async fn execute_pm_list_tasks(
-    project_id: &str,
-    _workspace_path: &str,
-    arguments: &serde_json::Value,
-    request: &JsonRpcRequest,
-) -> Json<JsonRpcResponse> {
-    Json(JsonRpcResponse {
-        jsonrpc: "2.0".to_string(),
-        id: request.id.clone(),
-        result: Some(json!({
-            "content": [{
-                "type": "text",
-                "text": format!("Listed tasks in project {} with filter: {}", project_id, arguments)
-            }]
-        })),
-        error: None,
-    })
-}
-
-async fn execute_pm_get_task(
-    project_id: &str,
-    _workspace_path: &str,
-    arguments: &serde_json::Value,
-    request: &JsonRpcRequest,
-) -> Json<JsonRpcResponse> {
-    let task_id = arguments.get("task_id").and_then(|v| v.as_str()).unwrap_or("unknown");
-    Json(JsonRpcResponse {
-        jsonrpc: "2.0".to_string(),
-        id: request.id.clone(),
-        result: Some(json!({
-            "content": [{
-                "type": "text",
-                "text": format!("Retrieved task {} from project {}", task_id, project_id)
-            }]
-        })),
-        error: None,
-    })
-}
-
-async fn execute_pm_update_task(
-    project_id: &str,
-    _workspace_path: &str,
-    arguments: &serde_json::Value,
-    request: &JsonRpcRequest,
-) -> Json<JsonRpcResponse> {
-    let task_id = arguments.get("task_id").and_then(|v| v.as_str()).unwrap_or("unknown");
-    Json(JsonRpcResponse {
-        jsonrpc: "2.0".to_string(),
-        id: request.id.clone(),
-        result: Some(json!({
-            "content": [{
-                "type": "text",
-                "text": format!("Updated task {} in project {} with: {}", task_id, project_id, arguments)
-            }]
-        })),
-        error: None,
-    })
-}
-
-async fn execute_pm_delete_task(
-    project_id: &str,
-    _workspace_path: &str,
-    arguments: &serde_json::Value,
-    request: &JsonRpcRequest,
-) -> Json<JsonRpcResponse> {
-    let task_id = arguments.get("task_id").and_then(|v| v.as_str()).unwrap_or("unknown");
-    Json(JsonRpcResponse {
-        jsonrpc: "2.0".to_string(),
-        id: request.id.clone(),
-        result: Some(json!({
-            "content": [{
-                "type": "text",
-                "text": format!("Deleted task {} from project {}", task_id, project_id)
-            }]
-        })),
-        error: None,
-    })
-}
-
-async fn execute_pm_move_task_to_sprint(
-    project_id: &str,
-    _workspace_path: &str,
-    arguments: &serde_json::Value,
-    request: &JsonRpcRequest,
-) -> Json<JsonRpcResponse> {
-    let task_id = arguments.get("task_id").and_then(|v| v.as_str()).unwrap_or("unknown");
-    let sprint_id = arguments.get("sprint_id").and_then(|v| v.as_str()).unwrap_or("none");
-    Json(JsonRpcResponse {
-        jsonrpc: "2.0".to_string(),
-        id: request.id.clone(),
-        result: Some(json!({
-            "content": [{
-                "type": "text",
-                "text": format!("Moved task {} to sprint {} in project {}", task_id, sprint_id, project_id)
-            }]
-        })),
-        error: None,
-    })
-}
-
-async fn execute_pm_add_task_comment(
-    project_id: &str,
-    _workspace_path: &str,
-    arguments: &serde_json::Value,
-    request: &JsonRpcRequest,
-) -> Json<JsonRpcResponse> {
-    let task_id = arguments.get("task_id").and_then(|v| v.as_str()).unwrap_or("unknown");
-    let content = arguments.get("content").and_then(|v| v.as_str()).unwrap_or("");
-    Json(JsonRpcResponse {
-        jsonrpc: "2.0".to_string(),
-        id: request.id.clone(),
-        result: Some(json!({
-            "content": [{
-                "type": "text",
-                "text": format!("Added comment to task {} in project {}: {}", task_id, project_id, content)
-            }]
-        })),
-        error: None,
-    })
-}
-
-// Document Management Tool Implementations
-async fn execute_pm_create_document(
-    project_id: &str,
-    _workspace_path: &str,
-    arguments: &serde_json::Value,
-    request: &JsonRpcRequest,
-) -> Json<JsonRpcResponse> {
-    Json(JsonRpcResponse {
-        jsonrpc: "2.0".to_string(),
-        id: request.id.clone(),
-        result: Some(json!({
-            "content": [{
-                "type": "text",
-                "text": format!("Created document in project {} with: {}", project_id, arguments)
-            }]
-        })),
-        error: None,
-    })
-}
-
-async fn execute_pm_list_documents(
-    project_id: &str,
-    _workspace_path: &str,
-    arguments: &serde_json::Value,
-    request: &JsonRpcRequest,
-) -> Json<JsonRpcResponse> {
-    Json(JsonRpcResponse {
-        jsonrpc: "2.0".to_string(),
-        id: request.id.clone(),
-        result: Some(json!({
-            "content": [{
-                "type": "text",
-                "text": format!("Listed documents in project {} with filter: {}", project_id, arguments)
-            }]
-        })),
-        error: None,
-    })
-}
-
-async fn execute_pm_get_document(
-    project_id: &str,
-    _workspace_path: &str,
-    arguments: &serde_json::Value,
-    request: &JsonRpcRequest,
-) -> Json<JsonRpcResponse> {
-    let document_id = arguments.get("document_id").and_then(|v| v.as_str()).unwrap_or("unknown");
-    Json(JsonRpcResponse {
-        jsonrpc: "2.0".to_string(),
-        id: request.id.clone(),
-        result: Some(json!({
-            "content": [{
-                "type": "text",
-                "text": format!("Retrieved document {} from project {}", document_id, project_id)
-            }]
-        })),
-        error: None,
-    })
-}
-
-async fn execute_pm_update_document(
-    project_id: &str,
-    _workspace_path: &str,
-    arguments: &serde_json::Value,
-    request: &JsonRpcRequest,
-) -> Json<JsonRpcResponse> {
-    let document_id = arguments.get("document_id").and_then(|v| v.as_str()).unwrap_or("unknown");
-    Json(JsonRpcResponse {
-        jsonrpc: "2.0".to_string(),
-        id: request.id.clone(),
-        result: Some(json!({
-            "content": [{
-                "type": "text",
-                "text": format!("Updated document {} in project {} with: {}", document_id, project_id, arguments)
-            }]
-        })),
-        error: None,
-    })
-}
-
-async fn execute_pm_delete_document(
-    project_id: &str,
-    _workspace_path: &str,
-    arguments: &serde_json::Value,
-    request: &JsonRpcRequest,
-) -> Json<JsonRpcResponse> {
-    let document_id = arguments.get("document_id").and_then(|v| v.as_str()).unwrap_or("unknown");
-    Json(JsonRpcResponse {
-        jsonrpc: "2.0".to_string(),
-        id: request.id.clone(),
-        result: Some(json!({
-            "content": [{
-                "type": "text",
-                "text": format!("Deleted document {} from project {}", document_id, project_id)
-            }]
-        })),
-        error: None,
-    })
-}
-
-async fn execute_pm_render_document(
-    project_id: &str,
-    _workspace_path: &str,
-    arguments: &serde_json::Value,
-    request: &JsonRpcRequest,
-) -> Json<JsonRpcResponse> {
-    let document_id = arguments.get("document_id").and_then(|v| v.as_str()).unwrap_or("unknown");
-    Json(JsonRpcResponse {
-        jsonrpc: "2.0".to_string(),
-        id: request.id.clone(),
-        result: Some(json!({
-            "content": [{
-                "type": "text",
-                "text": format!("Rendered document {} from project {}", document_id, project_id)
-            }]
-        })),
-        error: None,
-    })
-}
-
-// Sprint Management Tool Implementations
-async fn execute_pm_create_sprint(
-    project_id: &str,
-    _workspace_path: &str,
-    arguments: &serde_json::Value,
-    request: &JsonRpcRequest,
-) -> Json<JsonRpcResponse> {
-    Json(JsonRpcResponse {
-        jsonrpc: "2.0".to_string(),
-        id: request.id.clone(),
-        result: Some(json!({
-            "content": [{
-                "type": "text",
-                "text": format!("Created sprint in project {} with: {}", project_id, arguments)
-            }]
-        })),
-        error: None,
-    })
-}
-
-async fn execute_pm_list_sprints(
-    project_id: &str,
-    _workspace_path: &str,
-    _arguments: &serde_json::Value,
-    request: &JsonRpcRequest,
-) -> Json<JsonRpcResponse> {
-    Json(JsonRpcResponse {
-        jsonrpc: "2.0".to_string(),
-        id: request.id.clone(),
-        result: Some(json!({
-            "content": [{
-                "type": "text",
-                "text": format!("Listed sprints in project {}", project_id)
-            }]
-        })),
-        error: None,
-    })
-}
-
-async fn execute_pm_get_sprint(
-    project_id: &str,
-    _workspace_path: &str,
-    arguments: &serde_json::Value,
-    request: &JsonRpcRequest,
-) -> Json<JsonRpcResponse> {
-    let sprint_id = arguments.get("sprint_id").and_then(|v| v.as_str()).unwrap_or("unknown");
-    Json(JsonRpcResponse {
-        jsonrpc: "2.0".to_string(),
-        id: request.id.clone(),
-        result: Some(json!({
-            "content": [{
-                "type": "text",
-                "text": format!("Retrieved sprint {} from project {}", sprint_id, project_id)
-            }]
-        })),
-        error: None,
-    })
-}
-
-async fn execute_pm_start_sprint(
-    project_id: &str,
-    _workspace_path: &str,
-    arguments: &serde_json::Value,
-    request: &JsonRpcRequest,
-) -> Json<JsonRpcResponse> {
-    let sprint_id = arguments.get("sprint_id").and_then(|v| v.as_str()).unwrap_or("unknown");
-    Json(JsonRpcResponse {
-        jsonrpc: "2.0".to_string(),
-        id: request.id.clone(),
-        result: Some(json!({
-            "content": [{
-                "type": "text",
-                "text": format!("Started sprint {} in project {}", sprint_id, project_id)
-            }]
-        })),
-        error: None,
-    })
-}
-
-async fn execute_pm_complete_sprint(
-    project_id: &str,
-    _workspace_path: &str,
-    arguments: &serde_json::Value,
-    request: &JsonRpcRequest,
-) -> Json<JsonRpcResponse> {
-    let sprint_id = arguments.get("sprint_id").and_then(|v| v.as_str()).unwrap_or("unknown");
-    Json(JsonRpcResponse {
-        jsonrpc: "2.0".to_string(),
-        id: request.id.clone(),
-        result: Some(json!({
-            "content": [{
-                "type": "text",
-                "text": format!("Completed sprint {} in project {}", sprint_id, project_id)
-            }]
-        })),
-        error: None,
-    })
-}
-
-// Search Tool Implementations
-async fn execute_pm_search_tasks(
-    project_id: &str,
-    _workspace_path: &str,
-    arguments: &serde_json::Value,
-    request: &JsonRpcRequest,
-) -> Json<JsonRpcResponse> {
-    let query = arguments.get("query").and_then(|v| v.as_str()).unwrap_or("");
-    Json(JsonRpcResponse {
-        jsonrpc: "2.0".to_string(),
-        id: request.id.clone(),
-        result: Some(json!({
-            "content": [{
-                "type": "text",
-                "text": format!("Searched tasks in project {} for: {}", project_id, query)
-            }]
-        })),
-        error: None,
-    })
-}
-
-async fn execute_pm_search_documents(
-    project_id: &str,
-    _workspace_path: &str,
-    arguments: &serde_json::Value,
-    request: &JsonRpcRequest,
-) -> Json<JsonRpcResponse> {
-    let query = arguments.get("query").and_then(|v| v.as_str()).unwrap_or("");
-    Json(JsonRpcResponse {
-        jsonrpc: "2.0".to_string(),
-        id: request.id.clone(),
-        result: Some(json!({
-            "content": [{
-                "type": "text",
-                "text": format!("Searched documents in project {} for: {}", project_id, query)
-            }]
-        })),
-        error: None,
-    })
-}
-
-async fn execute_pm_search_all(
-    project_id: &str,
-    _workspace_path: &str,
-    arguments: &serde_json::Value,
-    request: &JsonRpcRequest,
-) -> Json<JsonRpcResponse> {
-    let query = arguments.get("query").and_then(|v| v.as_str()).unwrap_or("");
-    Json(JsonRpcResponse {
-        jsonrpc: "2.0".to_string(),
-        id: request.id.clone(),
-        result: Some(json!({
-            "content": [{
-                "type": "text",
-                "text": format!("Searched all items in project {} for: {}", project_id, query)
-            }]
-        })),
-        error: None,
-    })
-}
-
-// Statistics Tool Implementation
-async fn execute_pm_get_project_statistics(
-    project_id: &str,
-    _workspace_path: &str,
-    _arguments: &serde_json::Value,
-    request: &JsonRpcRequest,
-) -> Json<JsonRpcResponse> {
-    Json(JsonRpcResponse {
-        jsonrpc: "2.0".to_string(),
-        id: request.id.clone(),
-        result: Some(json!({
-            "content": [{
-                "type": "text",
-                "text": format!("Retrieved statistics for project {}", project_id)
-            }]
-        })),
-        error: None,
-    })
-}
-
-fn get_tool_definitions() -> Vec<serde_json::Value> {
-    let mut tools = vec![
-        // Project Management Tools
-        json!({
-            "name": "pm_create_project",
-            "description": "Create a new project management project",
-            "inputSchema": {
-                "type": "object",
-                "properties": {
-                    "name": {
-                        "type": "string",
-                        "description": "Project name"
-                    },
-                    "key": {
-                        "type": "string",
-                        "description": "Project key (e.g., PROJ)"
-                    },
-                    "description": {
-                        "type": "string",
-                        "description": "Project description"
-                    },
-                    "owner": {
-                        "type": "string",
-                        "description": "Project owner"
-                    }
-                },
-                "required": ["name", "key", "description", "owner"]
-            }
-        }),
-        json!({
-            "name": "pm_list_projects",
-            "description": "List all projects",
-            "inputSchema": {
-                "type": "object",
-                "properties": {}
-            }
-        }),
-        json!({
-            "name": "pm_get_project",
-            "description": "Get project details",
-            "inputSchema": {
-                "type": "object",
-                "properties": {}
-            }
-        }),
-        json!({
-            "name": "pm_update_project",
-            "description": "Update project details",
-            "inputSchema": {
-                "type": "object",
-                "properties": {
-                    "name": {
-                        "type": "string",
-                        "description": "New project name"
-                    },
-                    "description": {
-                        "type": "string",
-                        "description": "New project description"
-                    }
-                }
-            }
-        }),
-        json!({
-            "name": "pm_delete_project",
-            "description": "Delete a project",
-            "inputSchema": {
-                "type": "object",
-                "properties": {}
-            }
-        }),
-        
-        // Task Management Tools
-        json!({
-            "name": "pm_create_task",
-            "description": "Create a new task in the current project",
-            "inputSchema": {
-                "type": "object",
-                "properties": {
-                    "title": {
-                        "type": "string",
-                        "description": "Task title"
-                    },
-                    "description": {
-                        "type": "string",
-                        "description": "Task description"
-                    },
-                    "priority": {
-                        "type": "string",
-                        "enum": ["low", "medium", "high", "urgent"],
-                        "description": "Task priority"
-                    },
-                    "task_type": {
-                        "type": "string",
-                        "description": "Type of task (story, bug, task, etc.)"
-                    },
-                    "assignee": {
-                        "type": "string",
-                        "description": "Task assignee"
-                    },
-                    "due_date": {
-                        "type": "string",
-                        "format": "date",
-                        "description": "Due date (YYYY-MM-DD)"
-                    },
-                    "estimate": {
-                        "type": "number",
-                        "description": "Time estimate in hours"
-                    },
-                    "labels": {
-                        "type": "array",
-                        "items": {"type": "string"},
-                        "description": "Task labels"
-                    }
-                },
-                "required": ["title", "description", "priority", "task_type"]
-            }
-        }),
-        json!({
-            "name": "pm_list_tasks",
-            "description": "List tasks in the current project",
-            "inputSchema": {
-                "type": "object",
-                "properties": {
-                    "status": {
-                        "type": "array",
-                        "items": {"type": "string"},
-                        "description": "Filter by status"
-                    },
-                    "assignee": {
-                        "type": "array",
-                        "items": {"type": "string"},
-                        "description": "Filter by assignee"
-                    },
-                    "priority": {
-                        "type": "array",
-                        "items": {"type": "string"},
-                        "description": "Filter by priority"
-                    }
-                }
-            }
-        }),
-        json!({
-            "name": "pm_get_task",
-            "description": "Get task details",
-            "inputSchema": {
-                "type": "object",
-                "properties": {
-                    "task_id": {
-                        "type": "string",
-                        "description": "Task ID"
-                    }
-                },
-                "required": ["task_id"]
-            }
-        }),
-        json!({
-            "name": "pm_update_task",
-            "description": "Update task details",
-            "inputSchema": {
-                "type": "object",
-                "properties": {
-                    "task_id": {
-                        "type": "string",
-                        "description": "Task ID"
-                    },
-                    "title": {
-                        "type": "string",
-                        "description": "New task title"
-                    },
-                    "description": {
-                        "type": "string",
-                        "description": "New task description"
-                    },
-                    "status": {
-                        "type": "string",
-                        "description": "New task status"
-                    },
-                    "priority": {
-                        "type": "string",
-                        "description": "New task priority"
-                    },
-                    "assignee": {
-                        "type": "string",
-                        "description": "New task assignee"
-                    }
-                },
-                "required": ["task_id"]
-            }
-        }),
-        json!({
-            "name": "pm_delete_task",
-            "description": "Delete a task",
-            "inputSchema": {
-                "type": "object",
-                "properties": {
-                    "task_id": {
-                        "type": "string",
-                        "description": "Task ID"
-                    }
-                },
-                "required": ["task_id"]
-            }
-        }),
-        json!({
-            "name": "pm_move_task_to_sprint",
-            "description": "Move task to a sprint",
-            "inputSchema": {
-                "type": "object",
-                "properties": {
-                    "task_id": {
-                        "type": "string",
-                        "description": "Task ID"
-                    },
-                    "sprint_id": {
-                        "type": "string",
-                        "description": "Sprint ID (null to remove from sprint)"
-                    }
-                },
-                "required": ["task_id"]
-            }
-        }),
-        json!({
-            "name": "pm_add_task_comment",
-            "description": "Add comment to a task",
-            "inputSchema": {
-                "type": "object",
-                "properties": {
-                    "task_id": {
-                        "type": "string",
-                        "description": "Task ID"
-                    },
-                    "content": {
-                        "type": "string",
-                        "description": "Comment content"
-                    },
-                    "author": {
-                        "type": "string",
-                        "description": "Comment author"
-                    }
-                },
-                "required": ["task_id", "content", "author"]
-            }
-        }),
-        
-        // Document Management Tools
-        json!({
-            "name": "pm_create_document",
-            "description": "Create a new document in the current project",
-            "inputSchema": {
-                "type": "object",
-                "properties": {
-                    "title": {
-                        "type": "string",
-                        "description": "Document title"
-                    },
-                    "content": {
-                        "type": "string",
-                        "description": "Document content (markdown)"
-                    },
-                    "template": {
-                        "type": "string",
-                        "enum": ["page", "blog", "requirements", "api_doc", "meeting", "troubleshooting", "user_guide", "technical_spec"],
-                        "description": "Document template"
-                    },
-                    "tags": {
-                        "type": "array",
-                        "items": {"type": "string"},
-                        "description": "Document tags"
-                    }
-                },
-                "required": ["title", "template"]
-            }
-        }),
-        json!({
-            "name": "pm_list_documents",
-            "description": "List documents in the current project",
-            "inputSchema": {
-                "type": "object",
-                "properties": {
-                    "status": {
-                        "type": "array",
-                        "items": {"type": "string"},
-                        "description": "Filter by status"
-                    },
-                    "template": {
-                        "type": "array",
-                        "items": {"type": "string"},
-                        "description": "Filter by template"
-                    },
-                    "tags": {
-                        "type": "array",
-                        "items": {"type": "string"},
-                        "description": "Filter by tags"
-                    }
-                }
-            }
-        }),
-        json!({
-            "name": "pm_get_document",
-            "description": "Get document details",
-            "inputSchema": {
-                "type": "object",
-                "properties": {
-                    "document_id": {
-                        "type": "string",
-                        "description": "Document ID"
-                    }
-                },
-                "required": ["document_id"]
-            }
-        }),
-        json!({
-            "name": "pm_update_document",
-            "description": "Update document details",
-            "inputSchema": {
-                "type": "object",
-                "properties": {
-                    "document_id": {
-                        "type": "string",
-                        "description": "Document ID"
-                    },
-                    "title": {
-                        "type": "string",
-                        "description": "New document title"
-                    },
-                    "content": {
-                        "type": "string",
-                        "description": "New document content"
-                    },
-                    "status": {
-                        "type": "string",
-                        "description": "New document status"
-                    },
-                    "tags": {
-                        "type": "array",
-                        "items": {"type": "string"},
-                        "description": "New document tags"
-                    }
-                },
-                "required": ["document_id"]
-            }
-        }),
-        json!({
-            "name": "pm_delete_document",
-            "description": "Delete a document",
-            "inputSchema": {
-                "type": "object",
-                "properties": {
-                    "document_id": {
-                        "type": "string",
-                        "description": "Document ID"
-                    }
-                },
-                "required": ["document_id"]
-            }
-        }),
-        json!({
-            "name": "pm_render_document",
-            "description": "Render document to HTML",
-            "inputSchema": {
-                "type": "object",
-                "properties": {
-                    "document_id": {
-                        "type": "string",
-                        "description": "Document ID"
-                    }
-                },
-                "required": ["document_id"]
-            }
-        }),
-        
-        // Sprint Management Tools
-        json!({
-            "name": "pm_create_sprint",
-            "description": "Create a new sprint in the current project",
-            "inputSchema": {
-                "type": "object",
-                "properties": {
-                    "name": {
-                        "type": "string",
-                        "description": "Sprint name"
-                    },
-                    "start_date": {
-                        "type": "string",
-                        "format": "date",
-                        "description": "Sprint start date (YYYY-MM-DD)"
-                    },
-                    "end_date": {
-                        "type": "string",
-                        "format": "date",
-                        "description": "Sprint end date (YYYY-MM-DD)"
-                    },
-                    "goal": {
-                        "type": "string",
-                        "description": "Sprint goal"
-                    }
-                },
-                "required": ["name", "start_date", "end_date", "goal"]
-            }
-        }),
-        json!({
-            "name": "pm_list_sprints",
-            "description": "List sprints in the current project",
-            "inputSchema": {
-                "type": "object",
-                "properties": {}
-            }
-        }),
-        json!({
-            "name": "pm_get_sprint",
-            "description": "Get sprint details",
-            "inputSchema": {
-                "type": "object",
-                "properties": {
-                    "sprint_id": {
-                        "type": "string",
-                        "description": "Sprint ID"
-                    }
-                },
-                "required": ["sprint_id"]
-            }
-        }),
-        json!({
-            "name": "pm_start_sprint",
-            "description": "Start a sprint",
-            "inputSchema": {
-                "type": "object",
-                "properties": {
-                    "sprint_id": {
-                        "type": "string",
-                        "description": "Sprint ID"
-                    }
-                },
-                "required": ["sprint_id"]
-            }
-        }),
-        json!({
-            "name": "pm_complete_sprint",
-            "description": "Complete a sprint",
-            "inputSchema": {
-                "type": "object",
-                "properties": {
-                    "sprint_id": {
-                        "type": "string",
-                        "description": "Sprint ID"
-                    }
-                },
-                "required": ["sprint_id"]
-            }
-        }),
-        
-        // Search Tools
-        json!({
-            "name": "pm_search_tasks",
-            "description": "Search tasks in the current project",
-            "inputSchema": {
-                "type": "object",
-                "properties": {
-                    "query": {
-                        "type": "string",
-                        "description": "Search query"
-                    }
-                },
-                "required": ["query"]
-            }
-        }),
-        json!({
-            "name": "pm_search_documents",
-            "description": "Search documents in the current project",
-            "inputSchema": {
-                "type": "object",
-                "properties": {
-                    "query": {
-                        "type": "string",
-                        "description": "Search query"
-                    }
-                },
-                "required": ["query"]
-            }
-        }),
-        json!({
-            "name": "pm_search_all",
-            "description": "Search all items (tasks and documents) in the current project",
-            "inputSchema": {
-                "type": "object",
-                "properties": {
-                    "query": {
-                        "type": "string",
-                        "description": "Search query"
-                    }
-                },
-                "required": ["query"]
-            }
-        }),
-        
-        // Statistics Tools
-        json!({
-            "name": "pm_get_project_statistics",
-            "description": "Get project statistics",
-            "inputSchema": {
-                "type": "object",
-                "properties": {}
-            }
-        }),
-        
-        // Original file system tools
-        json!({
-            "name": "read_file",
-            "description": "Read the contents of a file",
-            "inputSchema": {
-                "type": "object",
-                "properties": {
-                    "path": {
-                        "type": "string",
-                        "description": "Path to the file to read"
-                    }
-                },
-                "required": ["path"]
-            }
-        }),
-        json!({
-            "name": "write_file",
-            "description": "Write content to a file",
-            "inputSchema": {
-                "type": "object",
-                "properties": {
-                    "path": {
-                        "type": "string",
-                        "description": "Path to the file to write"
-                    },
-                    "content": {
-                        "type": "string",
-                        "description": "Content to write to the file"
-                    }
-                },
-                "required": ["path", "content"]
-            }
-        }),
-        json!({
-            "name": "list_directory",
-            "description": "List files in a directory",
-            "inputSchema": {
-                "type": "object",
-                "properties": {
-                    "path": {
-                        "type": "string",
-                        "description": "Path to the directory"
-                    }
-                },
-                "required": ["path"]
-            }
-        }),
-        json!({
-            "name": "execute_command",
-            "description": "Execute a command in the terminal",
-            "inputSchema": {
-                "type": "object",
-                "properties": {
-                    "command": {
-                        "type": "string",
-                        "description": "Command to execute"
-                    }
-                },
-                "required": ["command"]
-            }
-        }),
-        json!({
-            "name": "git_status",
-            "description": "Get git status of the repository",
-            "inputSchema": {
-                "type": "object",
-                "properties": {}
-            }
-        }),
-        json!({
-            "name": "git_diff",
-            "description": "Get git diff of changes",
-            "inputSchema": {
-                "type": "object",
-                "properties": {
-                    "staged": {
-                        "type": "boolean",
-                        "description": "Show staged changes"
-                    }
-                }
-            }
-        }),
-        json!({
-            "name": "git_commit",
-            "description": "Create a git commit",
-            "inputSchema": {
-                "type": "object",
-                "properties": {
-                    "message": {
-                        "type": "string",
-                        "description": "Commit message"
-                    }
-                },
-                "required": ["message"]
-            }
-        }),
-        json!({
-            "name": "search_files",
-            "description": "Search for text in files",
-            "inputSchema": {
-                "type": "object",
-                "properties": {
-                    "pattern": {
-                        "type": "string",
-                        "description": "Search pattern"
-                    },
-                    "path": {
-                        "type": "string",
-                        "description": "Directory to search in"
-                    }
-                },
-                "required": ["pattern"]
-            }
-        }),
-        json!({
-            "name": "find_files",
-            "description": "Find files by name pattern",
-            "inputSchema": {
-                "type": "object",
-                "properties": {
-                    "pattern": {
-                        "type": "string",
-                        "description": "File name pattern (glob)"
-                    }
-                },
-                "required": ["pattern"]
-            }
-        })
-    ];
-    
-    tools
 }

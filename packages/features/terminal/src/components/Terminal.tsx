@@ -3,7 +3,7 @@ import { Terminal as XTerm } from '@xterm/xterm';
 import { FitAddon } from '@xterm/addon-fit';
 import { WebLinksAddon } from '@xterm/addon-web-links';
 import { SearchAddon } from '@xterm/addon-search';
-import type { TerminalTheme } from '@code-pilot/types';
+import type { TerminalTheme } from '../types';
 import '@xterm/xterm/css/xterm.css';
 
 interface TerminalProps {
@@ -143,7 +143,7 @@ function getDefaultTheme(): TerminalTheme {
     foreground: '#d4d4d4',
     cursor: '#d4d4d4',
     cursorAccent: '#1e1e1e',
-    selection: '#264f78',
+    selectionBackground: '#264f78',
     black: '#000000',
     red: '#cd3131',
     green: '#0dbc79',

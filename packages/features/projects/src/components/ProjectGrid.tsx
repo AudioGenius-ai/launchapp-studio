@@ -1,7 +1,7 @@
 import React from 'react';
 import { Project } from '@code-pilot/types';
 import { ProjectCard } from './ProjectCard';
-import { cn } from '@code-pilot/ui';
+import { cn } from '@code-pilot/ui-kit';
 
 interface ProjectGridProps {
   projects: Project[];

@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import { useClaudeSession, ClaudeMessage, ContentBlock } from './useClaudeEvents';
-import { AIMessage, AIMessageRole, AIMessageStatus } from '@code-pilot/types';
+import { AIMessage, AIMessageRole, AIMessageStatus } from '../types';
 
 interface ClaudeSession {
   id: string;
@@ -35,7 +35,7 @@ export interface UseClaudeSessionManagerResult {
   refreshMessages: () => Promise<void>;
   
   // Connection state
-  isConnected: boolean;
+  isConnected: () => boolean;
   reconnect: () => void;
 }
 
@@ -89,10 +89,10 @@ export const useClaudeSessionManager = (
               // Create or update streaming message
               streamingMessageRef.current = {
                 id: `streaming-${Date.now()}`,
-                role: AIMessageRole.Assistant,
+                role: AIMessageRole.ASSISTANT,
                 content,
-                timestamp: new Date().toISOString(),
-                status: AIMessageStatus.Streaming
+                timestamp: new Date(),
+                status: AIMessageStatus.STREAMING
               };
             } else {
               // Completed
@@ -179,10 +179,10 @@ export const useClaudeSessionManager = (
       // Add user message immediately
       const userMessage: AIMessage = {
         id: `user-${Date.now()}`,
-        role: AIMessageRole.User,
+        role: AIMessageRole.USER,
         content,
-        timestamp: new Date().toISOString(),
-        status: AIMessageStatus.Completed
+        timestamp: new Date(),
+        status: AIMessageStatus.COMPLETE
       };
       
       setMessages(prev => [...prev, userMessage]);
@@ -252,7 +252,7 @@ export const useClaudeSessionManager = (
   const allMessages = [...messages];
   if (streamingMessageRef.current) {
     const lastMessage = allMessages[allMessages.length - 1];
-    if (lastMessage?.status !== AIMessageStatus.Streaming) {
+    if (lastMessage?.status !== AIMessageStatus.STREAMING) {
       allMessages.push(streamingMessageRef.current);
     } else {
       allMessages[allMessages.length - 1] = streamingMessageRef.current;
@@ -270,7 +270,7 @@ export const useClaudeSessionManager = (
     stopSession,
     clearMessages,
     refreshMessages,
-    isConnected: isConnected(),
+    isConnected,
     reconnect
   };
 };
@@ -280,7 +280,7 @@ function convertClaudeMessagesToAIMessages(claudeMessages: ClaudeMessage[]): AIM
   return claudeMessages
     .filter(msg => msg.type === 'user' || msg.type === 'assistant')
     .map((msg, index) => {
-      const role = msg.type === 'user' ? AIMessageRole.User : AIMessageRole.Assistant;
+      const role = msg.type === 'user' ? AIMessageRole.USER : AIMessageRole.ASSISTANT;
       const content = msg.message ? extractTextContent(msg.message.content) : '';
       
       // Extract tool calls if any
@@ -289,15 +289,16 @@ function convertClaudeMessagesToAIMessages(claudeMessages: ClaudeMessage[]): AIM
         .map(block => ({
           id: block.id || '',
           name: block.name || '',
-          input: block.input
+          arguments: block.input,
+          input: block.input // For backward compatibility
         }));
 
       return {
         id: `msg-${index}`,
         role,
         content,
-        timestamp: new Date().toISOString(),
-        status: msg.message?.stopReason ? AIMessageStatus.Completed : AIMessageStatus.Pending,
+        timestamp: new Date(),
+        status: msg.message?.stopReason ? AIMessageStatus.COMPLETE : AIMessageStatus.PENDING,
         toolCalls: toolCalls && toolCalls.length > 0 ? toolCalls : undefined
       };
     });

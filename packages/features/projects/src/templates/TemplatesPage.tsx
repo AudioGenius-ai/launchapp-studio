@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { StartProjectDialog } from '@code-pilot/feature-templates';
-import { Button } from '@code-pilot/ui';
+import { Button } from '@code-pilot/ui-kit';
 import { Plus, Sparkles } from 'lucide-react';
 import { useTemplates } from './hooks/useTemplates';
 import { templates as templateData } from './data/templates';

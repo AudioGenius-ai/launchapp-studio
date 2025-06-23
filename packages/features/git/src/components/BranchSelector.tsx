@@ -1,6 +1,14 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { GitBranch as GitBranchType } from '@code-pilot/types';
-import { Button, cn } from '@code-pilot/ui';
+import { GitBranch as GitBranchType } from '../types';
+import { clsx } from 'clsx';
+import { twMerge } from 'tailwind-merge';
+
+const cn = (...inputs: any[]) => twMerge(clsx(inputs));
+const Button = ({ children, onClick, className, ...props }: any) => (
+  <button onClick={onClick} className={cn('px-4 py-2 rounded', className)} {...props}>
+    {children}
+  </button>
+);
 import { 
   GitBranch, 
   Check, 
@@ -137,11 +145,11 @@ export const BranchSelector: React.FC<BranchSelectorProps> = ({
                       {branch.name}
                     </span>
                   </div>
-                  {(branch.ahead > 0 || branch.behind > 0) && (
+                  {((branch.ahead ?? 0) > 0 || (branch.behind ?? 0) > 0) && (
                     <span className="text-xs text-muted-foreground ml-2">
-                      {branch.ahead > 0 && `↑${branch.ahead}`}
-                      {branch.ahead > 0 && branch.behind > 0 && ' '}
-                      {branch.behind > 0 && `↓${branch.behind}`}
+                      {(branch.ahead ?? 0) > 0 && `↑${branch.ahead}`}
+                      {(branch.ahead ?? 0) > 0 && (branch.behind ?? 0) > 0 && ' '}
+                      {(branch.behind ?? 0) > 0 && `↓${branch.behind}`}
                     </span>
                   )}
                 </button>

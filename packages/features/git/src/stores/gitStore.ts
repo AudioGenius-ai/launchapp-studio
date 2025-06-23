@@ -1,6 +1,6 @@
 import { create } from 'zustand';
-import { GitStatus, GitBranch, GitCommit, GitRemote } from '@code-pilot/types';
-import { gitService } from '@code-pilot/core';
+import { GitStatus, GitBranch, GitCommit, GitRemote } from '../types';
+import { gitService } from '../services/gitService';
 
 export interface GitState {
   // Repository state

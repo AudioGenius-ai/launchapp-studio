@@ -62,11 +62,11 @@ pub struct ProjectCreationOptions {
     #[serde(rename = "projectPath")]
     pub project_path: String,
     #[serde(rename = "gitInit")]
-    pub git_init: Option<bool>,
+    pub _git_init: Option<bool>,
     #[serde(rename = "installDependencies")]
-    pub install_dependencies: Option<bool>,
+    pub _install_dependencies: Option<bool>,
     #[serde(rename = "openInEditor")]
-    pub open_in_editor: Option<bool>,
+    pub _open_in_editor: Option<bool>,
 }
 
 #[derive(Debug, Serialize)]
@@ -115,7 +115,7 @@ pub async fn create_project_from_template(
     }
     
     // Build command
-    let mut command = build_template_command(&options.template, &options.project_name);
+    let command = build_template_command(&options.template, &options.project_name);
     
     // Execute command
     window.emit("template:execution:started", &options.template.id).ok();

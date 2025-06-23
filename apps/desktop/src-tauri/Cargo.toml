@@ -26,6 +26,7 @@ tauri-plugin-terminal = { path = "../../../plugins/tauri-plugin-terminal" }
 tauri-plugin-window-manager = { path = "../../../plugins/tauri-plugin-window-manager" }
 tauri-plugin-storage = { path = "../../../plugins/tauri-plugin-storage" }
 tauri-plugin-git = { path = "../../../plugins/tauri-plugin-git" }
+tauri-plugin-vscode-host = { path = "../../../plugins/tauri-plugin-vscode-host" }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 uuid = { version = "1.11", features = ["v4", "serde"] }

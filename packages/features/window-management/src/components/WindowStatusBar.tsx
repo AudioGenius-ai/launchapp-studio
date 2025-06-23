@@ -1,7 +1,6 @@
-import React from 'react';
 import { useWindowState } from '../hooks/useWindowState';
 import { Monitor, Square, Maximize2, Minimize2, Pin } from 'lucide-react';
-import { cn } from '@code-pilot/ui';
+import { cn } from '@code-pilot/ui-kit';
 
 interface WindowStatusBarProps {
   className?: string;

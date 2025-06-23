@@ -1,7 +1,7 @@
 import React, { useRef } from 'react';
 import { TerminalTabs } from './TerminalTabs';
 import { EnhancedTerminal, EnhancedTerminalRef } from './EnhancedTerminal';
-import type { Terminal as TerminalType, TerminalTheme } from '@code-pilot/types';
+import type { Terminal as TerminalType, TerminalTheme } from '../types';
 
 interface EnhancedTerminalPanelProps {
   terminals: TerminalType[];

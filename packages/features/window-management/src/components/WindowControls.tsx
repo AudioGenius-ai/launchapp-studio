@@ -1,7 +1,6 @@
-import React from 'react';
-import { Minus, Square, X, Pin, PinOff, Maximize2, Minimize2 } from 'lucide-react';
+import { Minus, X, Pin, PinOff, Maximize2, Minimize2 } from 'lucide-react';
 import { useWindow } from '../hooks/useWindow';
-import { cn } from '@code-pilot/ui';
+import { cn } from '@code-pilot/ui-kit';
 
 interface WindowControlsProps {
   className?: string;

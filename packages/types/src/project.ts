@@ -1,6 +1,24 @@
 // Project-related type definitions
 
-import { Project, ProjectSettings } from './index';
+// Define Project types here to avoid circular dependency
+export interface Project {
+  id: string;
+  name: string;
+  path: string;
+  description?: string;
+  tags?: string[];
+  status?: string;
+  createdAt: Date;
+  updatedAt: Date;
+  settings: ProjectSettings;
+}
+
+export interface ProjectSettings {
+  gitEnabled: boolean;
+  defaultBranch: string;
+  aiProvider?: string;
+  extensions: string[];
+}
 
 // Project creation and update DTOs
 export interface CreateProjectDto {
@@ -18,19 +36,26 @@ export interface UpdateProjectDto {
 
 // Project query types
 export interface ProjectQuery {
+  search?: string;
   searchTerm?: string;
+  tags?: string[];
+  status?: string;
   sortBy?: 'name' | 'createdAt' | 'updatedAt';
   sortOrder?: 'asc' | 'desc';
   limit?: number;
   offset?: number;
+  page?: number;
 }
 
 // Project response types
 export interface ProjectListResponse {
-  projects: Project[];
+  projects?: Project[];
+  items?: Project[];
   total: number;
   limit: number;
-  offset: number;
+  offset?: number;
+  page?: number;
+  hasMore?: boolean;
 }
 
 // Project validation types
@@ -56,5 +81,3 @@ export interface ProjectEventPayload {
   timestamp: Date;
 }
 
-// Re-export from index for convenience
-export { Project, ProjectSettings } from './index';

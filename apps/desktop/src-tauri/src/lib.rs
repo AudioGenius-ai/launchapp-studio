@@ -3,12 +3,16 @@ mod commands;
 use std::collections::HashMap;
 use std::sync::Mutex;
 use commands::project::{ProjectStore, Project};
+use commands::startup::{FileWatcherState, PreferencesState, ThemeState};
 use tauri::Manager;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
         .manage(ProjectStore(Mutex::new(HashMap::<String, Project>::new())))
+        .manage(FileWatcherState(Mutex::new(HashMap::new())))
+        .manage(PreferencesState(Mutex::new(HashMap::new())))
+        .manage(ThemeState(Mutex::new("dark".to_string())))
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_claude::init())
@@ -16,6 +20,7 @@ pub fn run() {
         .plugin(tauri_plugin_window_manager::init())
         .plugin(tauri_plugin_storage::init())
         .plugin(tauri_plugin_git::init())
+        .plugin(tauri_plugin_vscode_host::init())
         .invoke_handler(tauri::generate_handler![
             commands::project::create_project,
             commands::project::get_or_create_project_by_path,
@@ -59,6 +64,15 @@ pub fn run() {
             commands::template_commands::save_custom_template,
             commands::template_commands::remove_custom_template,
             commands::template_commands::import_template_from_url,
+            commands::startup::initialize_file_watcher,
+            commands::startup::initialize_project_service,
+            commands::startup::initialize_theme_service,
+            commands::startup::load_user_preferences,
+            commands::startup::get_setting,
+            commands::startup::check_for_updates,
+            commands::startup::save_application_state,
+            commands::startup::cleanup_connections,
+            commands::startup::log_error,
         ])
         .setup(|app| {
             // Load projects from storage on startup

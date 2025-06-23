@@ -66,7 +66,7 @@ export const useClaudeEvents = (options: UseClaudeEventsOptions = {}) => {
   } = options;
 
   const unlistenersRef = useRef<UnlistenFn[]>([]);
-  const reconnectTimeoutRef = useRef<NodeJS.Timeout>();
+  const reconnectTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
   const isConnectedRef = useRef(false);
 
   const cleanup = useCallback(() => {
@@ -176,7 +176,7 @@ export const useClaudeEvents = (options: UseClaudeEventsOptions = {}) => {
       isConnectedRef.current = true;
     } catch (err) {
       console.error('Failed to setup Claude event listeners:', err);
-      onError?.(sessionId || '', err);
+      onError?.(sessionId || '', err as Error);
 
       // Attempt to reconnect if enabled
       if (autoReconnect && !reconnectTimeoutRef.current) {

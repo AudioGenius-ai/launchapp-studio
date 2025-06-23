@@ -1,6 +1,5 @@
-import React from 'react';
 import { WindowControls } from './WindowControls';
-import { cn } from '@code-pilot/ui';
+import { cn } from '@code-pilot/ui-kit';
 
 interface WindowTitleBarProps {
   title?: string;

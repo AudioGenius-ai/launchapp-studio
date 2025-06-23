@@ -4,7 +4,7 @@ import { FitAddon } from '@xterm/addon-fit';
 import { WebLinksAddon } from '@xterm/addon-web-links';
 import { SearchAddon } from '@xterm/addon-search';
 import { Unicode11Addon } from '@xterm/addon-unicode11';
-import { TerminalTheme } from '@code-pilot/types';
+import { TerminalTheme } from '../types';
 import { useTerminalData } from '../hooks/useTerminalData';
 import '@xterm/xterm/css/xterm.css';
 
@@ -87,7 +87,7 @@ export const EnhancedTerminal = forwardRef<EnhancedTerminalRef, EnhancedTerminal
         foreground: theme.foreground,
         cursor: theme.cursor,
         cursorAccent: theme.cursorAccent,
-        selectionBackground: theme.selection,
+        selectionBackground: theme.selectionBackground,
         black: theme.black,
         red: theme.red,
         green: theme.green,
@@ -186,7 +186,7 @@ export const EnhancedTerminal = forwardRef<EnhancedTerminalRef, EnhancedTerminal
         foreground: theme.foreground,
         cursor: theme.cursor,
         cursorAccent: theme.cursorAccent,
-        selectionBackground: theme.selection,
+        selectionBackground: theme.selectionBackground,
         black: theme.black,
         red: theme.red,
         green: theme.green,

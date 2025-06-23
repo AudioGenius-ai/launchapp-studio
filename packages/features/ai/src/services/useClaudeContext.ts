@@ -6,7 +6,7 @@ import {
   AICodeSnippet,
   ProjectContext,
   FileContext
-} from '@code-pilot/types';
+} from '../types';
 
 export interface UseClaudeContextResult {
   currentContext: AIContext;
@@ -21,11 +21,11 @@ export interface UseClaudeContextResult {
 
 export const useClaudeContext = (): UseClaudeContextResult => {
   const [currentContext, setCurrentContext] = useState<AIContext>({
-    projectContext: undefined,
-    fileContext: undefined,
     files: [],
     codeSnippets: [],
-    customInstructions: undefined
+    project: undefined,
+    systemPrompt: undefined,
+    metadata: {}
   });
 
   // Load initial context from current project and open files
@@ -38,16 +38,17 @@ export const useClaudeContext = (): UseClaudeContextResult => {
         const projectInfo = await invoke<any>('get_project_info', { path: projectPath });
         
         const projectContext: ProjectContext = {
-          projectPath,
-          projectName: projectInfo?.name || projectPath.split('/').pop() || 'Unknown',
-          projectType: projectInfo?.type || 'generic',
-          language: projectInfo?.language || 'unknown',
-          framework: projectInfo?.framework
+          id: projectPath,
+          name: projectInfo?.name || projectPath.split('/').pop() || 'Unknown',
+          path: projectPath,
+          description: projectInfo?.description,
+          technologies: projectInfo?.technologies || [],
+          metadata: projectInfo?.metadata || {}
         };
 
         setCurrentContext(prev => ({
           ...prev,
-          projectContext
+          project: projectContext
         }));
       }
 
@@ -60,19 +61,16 @@ export const useClaudeContext = (): UseClaudeContextResult => {
           
           if (activeTab?.file) {
             const fileContext: FileContext = {
-              filePath: activeTab.file.path,
-              fileName: activeTab.file.name,
-              fileType: activeTab.file.type || 'text',
+              path: activeTab.file.path,
+              content: activeTab.file.content,
               language: activeTab.file.language || 'plaintext',
-              content: activeTab.file.content
+              metadata: {}
             };
 
             setCurrentContext(prev => ({
               ...prev,
-              fileContext,
               files: [{
                 path: activeTab.file.path,
-                name: activeTab.file.name,
                 content: activeTab.file.content,
                 language: activeTab.file.language || 'plaintext'
               }]
@@ -111,40 +109,40 @@ export const useClaudeContext = (): UseClaudeContextResult => {
   const addFile = useCallback((file: AIContextFile) => {
     setCurrentContext(prev => ({
       ...prev,
-      files: [...prev.files.filter(f => f.path !== file.path), file]
+      files: [...(prev.files || []).filter(f => f.path !== file.path), file]
     }));
   }, []);
 
   const removeFile = useCallback((filePath: string) => {
     setCurrentContext(prev => ({
       ...prev,
-      files: prev.files.filter(f => f.path !== filePath)
+      files: (prev.files || []).filter(f => f.path !== filePath)
     }));
   }, []);
 
   const addCodeSnippet = useCallback((snippet: AICodeSnippet) => {
     setCurrentContext(prev => ({
       ...prev,
-      codeSnippets: [...prev.codeSnippets, snippet]
+      codeSnippets: [...(prev.codeSnippets || []), snippet]
     }));
   }, []);
 
   const removeCodeSnippet = useCallback((id: string) => {
     setCurrentContext(prev => ({
       ...prev,
-      codeSnippets: prev.codeSnippets.filter(s => s.id !== id)
+      codeSnippets: (prev.codeSnippets || []).filter(s => s.id !== id)
     }));
   }, []);
 
   const clearContext = useCallback(() => {
     setCurrentContext({
-      projectContext: currentContext.projectContext,
-      fileContext: undefined,
+      project: currentContext.project,
       files: [],
       codeSnippets: [],
-      customInstructions: undefined
+      systemPrompt: undefined,
+      metadata: {}
     });
-  }, [currentContext.projectContext]);
+  }, [currentContext.project]);
 
   const refreshContext = useCallback(async () => {
     await loadInitialContext();

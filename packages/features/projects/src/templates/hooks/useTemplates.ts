@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
-import { ProjectTemplate, TemplateService, ITemplateService } from '@code-pilot/core';
-import { useProjectService } from '../../../hooks/useProjectService';
+import { ProjectTemplate } from '@code-pilot/feature-templates';
+import { TemplateService, ITemplateService } from '@code-pilot/feature-templates';
+import { useProjectService } from '@code-pilot/hooks';
 import { invoke } from '@tauri-apps/api/core';
 import { open } from '@tauri-apps/plugin-dialog';
 import { homeDir } from '@tauri-apps/api/path';

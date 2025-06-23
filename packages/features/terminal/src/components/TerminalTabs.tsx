@@ -1,7 +1,10 @@
 import React, { useState, useCallback } from 'react';
 import { X, Plus, Terminal as TerminalIcon } from 'lucide-react';
-import { cn } from '@code-pilot/ui';
-import type { Terminal } from '@code-pilot/types';
+import type { Terminal } from '../types';
+import { clsx } from 'clsx';
+import { twMerge } from 'tailwind-merge';
+
+const cn = (...inputs: any[]) => twMerge(clsx(inputs));
 
 interface TerminalTabsProps {
   terminals: Terminal[];

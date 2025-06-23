@@ -1,7 +1,7 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { useMultiWindow } from '../hooks/useMultiWindow';
 import { WindowListItem } from './WindowListItem';
-import { Button } from '@code-pilot/ui';
+import { Button } from '@code-pilot/ui-kit';
 import { Plus, Grid, List } from 'lucide-react';
 import type { WindowConfig } from '../types';
 

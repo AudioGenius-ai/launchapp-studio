@@ -5,23 +5,32 @@
   "description": "AI-powered IDE built with Tauri, React, and TypeScript",
   "author": "Code Pilot Studio Team",
   "license": "MIT",
-  "packageManager": "pnpm@8.15.0",
+  "packageManager": "pnpm@10.12.2",
   "engines": {
     "node": ">=18.0.0",
     "pnpm": ">=8.0.0"
   },
   "scripts": {
-    "dev": "turbo dev",
+    "dev": "turbo tauri:dev --filter=@code-pilot/desktop",
+    "dev:all": "turbo dev --concurrency=30",
+    "dev:desktop": "turbo tauri:dev --filter=@code-pilot/desktop... --concurrency=30",
+    "watch": "turbo watch --concurrency=30",
+    "watch:packages": "turbo watch --filter='./packages/*'",
     "build": "turbo build",
+    "build:packages": "turbo build --filter='./packages/*'",
     "test": "turbo test",
     "lint": "turbo lint",
+    "typecheck": "turbo typecheck",
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,css,md}\"",
-    "clean": "turbo clean && rm -rf node_modules"
+    "clean": "turbo clean && rm -rf node_modules",
+    "clean:cache": "rm -rf node_modules/.cache .turbo node_modules/.vite",
+    "check:compiled": "./scripts/check-no-compiled-files.sh",
+    "migrate:turborepo": "node scripts/migrate-turborepo.js"
   },
   "devDependencies": {
-    "@types/node": "^20.11.0",
-    "prettier": "^3.2.4",
-    "turbo": "^1.11.3",
-    "typescript": "^5.3.3"
+    "@types/node": "^24.0.3",
+    "prettier": "^3.6.0",
+    "turbo": "^2.5.4",
+    "typescript": "^5.8.3"
   }
 }

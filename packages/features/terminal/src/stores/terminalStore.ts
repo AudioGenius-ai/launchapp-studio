@@ -1,6 +1,6 @@
 import { create } from 'zustand';
-import { terminalService } from '@code-pilot/core';
-import { Terminal, TerminalTheme } from '@code-pilot/types';
+import { terminalService } from '../services/terminalService';
+import { Terminal, TerminalTheme } from '../types';
 
 interface TerminalState {
   terminals: Terminal[];

@@ -1,5 +1,36 @@
 import React, { useEffect } from 'react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@code-pilot/ui';
+// Mock Tabs components
+const Tabs = ({ defaultValue, className, children }: any) => {
+  const [value, setValue] = React.useState(defaultValue);
+  return (
+    <div className={className} data-value={value}>
+      {React.Children.map(children, child => 
+        React.cloneElement(child, { value, setValue })
+      )}
+    </div>
+  );
+};
+
+const TabsList = ({ className, children }: any) => (
+  <div className={className}>
+    {children}
+  </div>
+);
+
+const TabsTrigger = ({ value, children, setValue }: any) => (
+  <button
+    onClick={() => setValue?.(value)}
+    className="px-4 py-2 text-sm font-medium"
+  >
+    {children}
+  </button>
+);
+
+const TabsContent = ({ value: contentValue, className, children }: any) => {
+  const parent = React.useContext(React.createContext<any>({}));
+  const isActive = parent?.value === contentValue;
+  return isActive ? <div className={className}>{children}</div> : null;
+};
 import { GitStatus } from './GitStatus';
 import { GitCommit } from './GitCommit';
 import { GitBranch } from './GitBranch';

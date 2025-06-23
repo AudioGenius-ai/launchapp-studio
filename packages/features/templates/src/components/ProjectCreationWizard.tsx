@@ -1,7 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { Template } from '../types';
-import { invoke } from '@tauri-apps/api/core';
-import { open } from '@tauri-apps/plugin-dialog';
 import { homeDir } from '@tauri-apps/api/path';
 import { listen } from '@tauri-apps/api/event';
 import {
@@ -11,13 +9,13 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@code-pilot/ui';
-import { Button } from '@code-pilot/ui';
-import { Input } from '@code-pilot/ui';
-import { Label } from '@code-pilot/ui';
-import { Checkbox } from '@code-pilot/ui';
-import { ScrollArea } from '@code-pilot/ui';
-import { Alert, AlertDescription } from '@code-pilot/ui';
+} from '@code-pilot/ui-kit';
+import { Button } from '@code-pilot/ui-kit';
+import { Input } from '@code-pilot/ui-kit';
+import { Label } from '@code-pilot/ui-kit';
+import { Checkbox } from '@code-pilot/ui-kit';
+import { ScrollArea } from '@code-pilot/ui-kit';
+import { Alert, AlertDescription } from '@code-pilot/ui-kit';
 import { Folder, Home, Code, Terminal as TerminalIcon, Loader2 } from 'lucide-react';
 import { cn } from '@code-pilot/utils';
 
@@ -73,7 +71,7 @@ export function ProjectCreationWizard({
 
   const handleSelectPath = async () => {
     try {
-      const selected = await open({
+      const selected = await (open as any)({
         directory: true,
         multiple: false,
         title: 'Select Project Location',

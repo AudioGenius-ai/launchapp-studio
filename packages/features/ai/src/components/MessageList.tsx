@@ -1,5 +1,5 @@
 import React from 'react';
-import type { AIMessage } from '@code-pilot/types';
+import type { AIMessage } from '../types';
 import { cn } from '@code-pilot/utils';
 import { MessageItem } from './MessageItem';
 

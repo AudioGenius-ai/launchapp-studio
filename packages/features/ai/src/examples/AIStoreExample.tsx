@@ -8,7 +8,7 @@ import {
   useAIErrors
 } from '../stores/aiStore';
 import { useAIStoreSync, useAIProviders } from '../hooks';
-import { AIMessageRole, AIMessageStatus } from '@code-pilot/types';
+import { AIMessageRole, AIMessageStatus } from '../types';
 
 /**
  * Example component demonstrating how to use the AI store
@@ -52,11 +52,10 @@ export const AIStoreExample: React.FC = () => {
       projectId: 'example-project',
       name: 'Example Session',
       context: {
-        projectContext: {
-          projectId: 'example-project',
-          projectPath: '/path/to/project',
-          activeFile: '/path/to/file.ts',
-          gitBranch: 'main'
+        project: {
+          id: 'example-project',
+          name: 'Example Project',
+          path: '/path/to/project'
         }
       }
     });
@@ -70,10 +69,10 @@ export const AIStoreExample: React.FC = () => {
     
     const message = {
       id: `msg-${Date.now()}`,
-      role: AIMessageRole.User,
+      role: AIMessageRole.USER,
       content,
       timestamp: new Date(),
-      status: AIMessageStatus.Sent
+      status: AIMessageStatus.SENT
     };
     
     addMessage(activeSessionId, message);
@@ -126,7 +125,7 @@ export const AIStoreExample: React.FC = () => {
           <div>
             <p>Name: {activeProvider.name}</p>
             <p>Type: {activeProvider.type}</p>
-            <p>Features: {activeProvider.capabilities.features.join(', ')}</p>
+            <p>Features: {activeProvider.capabilities?.supportedFeatures.join(', ')}</p>
           </div>
         ) : (
           <p>No active provider</p>

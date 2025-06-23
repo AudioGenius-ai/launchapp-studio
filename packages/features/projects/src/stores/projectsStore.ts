@@ -3,7 +3,6 @@ import { persist } from 'zustand/middleware';
 import { invoke } from '@tauri-apps/api/core';
 import { Project, CreateProjectDto, ProjectListResponse } from '@code-pilot/types';
 import { fileService } from '@code-pilot/core';
-import { projectStorage } from '@code-pilot/services';
 
 interface ProjectsState {
   // State

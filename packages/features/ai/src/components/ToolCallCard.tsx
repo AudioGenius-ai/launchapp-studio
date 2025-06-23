@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import type { ToolCall, ToolCallStatus } from '@code-pilot/types';
-import { cn } from '@code-pilot/utils';
+import { ToolCall, ToolCallStatus } from '../types';
+import { cn } from '@code-pilot/ui-kit';
 
 export interface ToolCallCardProps {
   toolCall: ToolCall;
@@ -19,31 +19,31 @@ export const ToolCallCard: React.FC<ToolCallCardProps> = ({
 
   const getStatusIcon = () => {
     switch (toolCall.status) {
-      case ToolCallStatus.Pending:
+      case ToolCallStatus.PENDING:
         return (
           <svg className="w-4 h-4 text-muted-foreground animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
         );
-      case ToolCallStatus.Running:
+      case ToolCallStatus.EXECUTING:
         return (
           <svg className="w-4 h-4 text-primary animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
           </svg>
         );
-      case ToolCallStatus.Completed:
+      case ToolCallStatus.COMPLETED:
         return (
           <svg className="w-4 h-4 text-success" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
         );
-      case ToolCallStatus.Failed:
+      case ToolCallStatus.FAILED:
         return (
           <svg className="w-4 h-4 text-destructive" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
         );
-      case ToolCallStatus.Cancelled:
+      case ToolCallStatus.FAILED:
         return (
           <svg className="w-4 h-4 text-warning" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
@@ -76,12 +76,8 @@ export const ToolCallCard: React.FC<ToolCallCardProps> = ({
       >
         <div className="flex items-center gap-2">
           {getStatusIcon()}
-          <span className="font-medium">{toolCall.tool}</span>
-          {toolCall.completedAt && (
-            <span className="text-xs text-muted-foreground">
-              {((toolCall.completedAt.getTime() - toolCall.createdAt.getTime()) / 1000).toFixed(2)}s
-            </span>
-          )}
+          <span className="font-medium">{toolCall.name}</span>
+          {/* Timing info not available in current ToolCall interface */}
         </div>
         <svg
           className={cn(
@@ -118,7 +114,7 @@ export const ToolCallCard: React.FC<ToolCallCardProps> = ({
           </div>
 
           {/* Output */}
-          {toolCall.output !== undefined && (
+          {toolCall.result !== undefined && (
             <div className="mb-3">
               <h4 className={cn(
                 'font-medium mb-1',
@@ -130,7 +126,7 @@ export const ToolCallCard: React.FC<ToolCallCardProps> = ({
                 'bg-muted rounded p-2 overflow-x-auto',
                 compactMode ? 'text-xs' : 'text-sm'
               )}>
-                <code>{formatJson(toolCall.output)}</code>
+                <code>{formatJson(toolCall.result)}</code>
               </pre>
             </div>
           )}

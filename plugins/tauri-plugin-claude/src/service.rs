@@ -277,8 +277,49 @@ impl<R: Runtime> ClaudeService<R> {
             return Ok(Vec::new());
         }
 
-        // TODO: Parse MCP config and extract available tools
-        Ok(Vec::new())
+        // Read and parse MCP config
+        let config_content = tokio::fs::read_to_string(&mcp_config_path).await?;
+        let config: serde_json::Value = serde_json::from_str(&config_content)?;
+        
+        let mut tools = Vec::new();
+        
+        // Extract server configurations
+        if let Some(servers) = config.get("mcpServers").and_then(|v| v.as_object()) {
+            for (server_name, _server_config) in servers {
+                if server_name == "project-management" {
+                    // Add known project management tools
+                    tools.extend(vec![
+                        "pm_create_project".to_string(),
+                        "pm_list_projects".to_string(),
+                        "pm_get_project".to_string(),
+                        "pm_create_task".to_string(),
+                        "pm_list_tasks".to_string(),
+                        "pm_get_task".to_string(),
+                        "pm_update_task".to_string(),
+                        "pm_delete_task".to_string(),
+                        "pm_move_task_to_sprint".to_string(),
+                        "pm_add_task_comment".to_string(),
+                        "pm_create_document".to_string(),
+                        "pm_list_documents".to_string(),
+                        "pm_get_document".to_string(),
+                        "pm_update_document".to_string(),
+                        "pm_delete_document".to_string(),
+                        "pm_render_document".to_string(),
+                        "pm_create_sprint".to_string(),
+                        "pm_list_sprints".to_string(),
+                        "pm_get_sprint".to_string(),
+                        "pm_start_sprint".to_string(),
+                        "pm_complete_sprint".to_string(),
+                        "pm_search_tasks".to_string(),
+                        "pm_search_documents".to_string(),
+                        "pm_search_all".to_string(),
+                        "pm_get_project_statistics".to_string(),
+                    ]);
+                }
+            }
+        }
+
+        Ok(tools)
     }
 
     /// Cleanup all sessions

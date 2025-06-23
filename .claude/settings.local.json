@@ -8,7 +8,13 @@
       "Bash(git restore:*)",
       "Bash(git add:*)",
       "Bash(git commit:*)",
-      "Bash(npm run build:*)"
+      "Bash(npm run build:*)",
+      "Bash(pnpm ls:*)",
+      "Bash(cp:*)",
+      "WebFetch(domain:turborepo.com)",
+      "WebFetch(domain:turbo.build)",
+      "Bash(sed:*)",
+      "Bash(npm run type-check:*)"
     ],
     "deny": []
   }

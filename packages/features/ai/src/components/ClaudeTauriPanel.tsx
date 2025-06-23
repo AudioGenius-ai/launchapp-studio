@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { ChatInterface } from './ChatInterface';
 import { SessionTabs } from './SessionTabs';
 import { invoke } from '@tauri-apps/api/core';
@@ -8,8 +8,9 @@ import {
   AIMessage,
   SendMessageRequest,
   AIMessageRole,
-  AIMessageStatus
-} from '@code-pilot/types';
+  AIMessageStatus,
+  AISessionStatus
+} from '../types';
 
 interface ClaudeSession {
   id: string;
@@ -80,10 +81,10 @@ export const ClaudeTauriPanel: React.FC<ClaudeTauriPanelProps> = ({
             if (!streamingMessageRef.current) {
               streamingMessageRef.current = {
                 id: `msg-${Date.now()}`,
-                role: AIMessageRole.Assistant,
+                role: AIMessageRole.ASSISTANT,
                 content,
-                timestamp: new Date().toISOString(),
-                status: AIMessageStatus.Streaming
+                timestamp: new Date(),
+                status: AIMessageStatus.STREAMING
               };
             } else {
               streamingMessageRef.current.content = content;
@@ -166,7 +167,7 @@ export const ClaudeTauriPanel: React.FC<ClaudeTauriPanelProps> = ({
     }
   };
 
-  const createSession = async (name?: string) => {
+  const createSession = async (_name?: string) => {
     try {
       const session = await invoke<ClaudeSession>('plugin:claude|create_session', {
         workspacePath,
@@ -236,13 +237,18 @@ export const ClaudeTauriPanel: React.FC<ClaudeTauriPanelProps> = ({
       id: session.id,
       name: `Claude Session ${new Date(session.createdAt * 1000).toLocaleString()}`,
       providerId: 'claude-cli',
+      projectId: session.workspacePath,
+      status: session.status === 'streaming' ? AISessionStatus.ACTIVE : 
+              session.status === 'failed' ? AISessionStatus.ERROR : 
+              session.status === 'completed' ? AISessionStatus.ENDED : 
+              AISessionStatus.IDLE,
       messages: sessionMessages,
       context: {
-        workspace: session.workspacePath
+        project: { id: session.workspacePath, name: 'Current Workspace', path: session.workspacePath }
       },
-      settings: {},
-      createdAt: new Date(session.createdAt * 1000).toISOString(),
-      updatedAt: new Date(session.lastActivity * 1000).toISOString()
+      metadata: {},
+      createdAt: new Date(session.createdAt * 1000),
+      updatedAt: new Date(session.lastActivity * 1000)
     };
   };
 
@@ -255,7 +261,7 @@ export const ClaudeTauriPanel: React.FC<ClaudeTauriPanelProps> = ({
     const currentMessages = [...activeAISession.messages];
     const lastMessage = currentMessages[currentMessages.length - 1];
     
-    if (lastMessage?.status !== AIMessageStatus.Streaming) {
+    if (lastMessage?.status !== AIMessageStatus.STREAMING) {
       currentMessages.push(streamingMessageRef.current);
     } else {
       currentMessages[currentMessages.length - 1] = streamingMessageRef.current;
@@ -339,15 +345,15 @@ function convertClaudeMessagesToAIMessages(claudeMessages: ClaudeMessage[]): AIM
   return claudeMessages
     .filter(msg => msg.type === 'user' || msg.type === 'assistant')
     .map((msg, index) => {
-      const role = msg.type === 'user' ? AIMessageRole.User : AIMessageRole.Assistant;
+      const role = msg.type === 'user' ? AIMessageRole.USER : AIMessageRole.ASSISTANT;
       const content = msg.message ? extractTextContent(msg.message.content) : '';
       
       return {
         id: `msg-${index}`,
         role,
         content,
-        timestamp: new Date().toISOString(), // Claude doesn't provide timestamps
-        status: msg.message?.stopReason ? AIMessageStatus.Completed : AIMessageStatus.Pending
+        timestamp: new Date(), // Claude doesn't provide timestamps
+        status: msg.message?.stopReason ? AIMessageStatus.COMPLETE : AIMessageStatus.PENDING
       };
     });
 }

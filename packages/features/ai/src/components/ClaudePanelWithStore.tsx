@@ -1,11 +1,6 @@
-import React, { useEffect, useCallback } from 'react';
+import React, { useEffect } from 'react';
 import { ChatInterface } from './ChatInterface';
 import { SessionTabs } from './SessionTabs';
-import {
-  ClaudeService,
-  AIManagerService,
-  AIProviderRegistry
-} from '@code-pilot/core';
 import {
   SendMessageRequest,
   StreamChunk,
@@ -15,7 +10,7 @@ import {
   AIMessageRole,
   AIMessageStatus,
   AIErrorCode
-} from '@code-pilot/types';
+} from '../types';
 import { useClaudeService } from '../services/useClaudeService';
 import { useClaudeContext } from '../services/useClaudeContext';
 import {
@@ -58,7 +53,7 @@ export const ClaudePanel: React.FC<ClaudePanelProps> = ({
   } = useAIStore();
   
   const activeSession = useActiveSession();
-  const messages = useSessionMessages(activeSessionId || '');
+  // const messages = useSessionMessages(activeSessionId || '');
   const streamingState = useStreamingState();
   
   // Use UI preferences from store
@@ -76,7 +71,7 @@ export const ClaudePanel: React.FC<ClaudePanelProps> = ({
     if (!service) return;
 
     const handlers = [
-      service.on(AIEvent.SessionCreated, (session) => {
+      service.subscribe(AIEvent.SESSION_CREATED, (session) => {
         // Session already created in store by createSession function
         // This event is for external session creation
         createSessionInStore({
@@ -88,11 +83,11 @@ export const ClaudePanel: React.FC<ClaudePanelProps> = ({
         });
       }),
       
-      service.on(AIEvent.SessionDeleted, ({ sessionId }: { sessionId: string }) => {
+      service.subscribe(AIEvent.SESSION_ENDED, ({ sessionId }: { sessionId: string }) => {
         deleteSessionFromStore(sessionId);
       }),
       
-      service.on(AIEvent.SessionUpdated, (session) => {
+      service.subscribe(AIEvent.SESSION_UPDATED, (session) => {
         updateSession(session.id, {
           name: session.name,
           status: session.status,
@@ -101,28 +96,26 @@ export const ClaudePanel: React.FC<ClaudePanelProps> = ({
         });
       }),
       
-      service.on(AIEvent.MessageStreaming, (chunk: StreamChunk) => {
+      service.subscribe(AIEvent.MESSAGE_STREAMING, (chunk: StreamChunk) => {
         updateStreamingContent(chunk);
       }),
       
-      service.on(AIEvent.MessageCompleted, ({ sessionId, message }) => {
+      service.subscribe(AIEvent.MESSAGE_COMPLETE, ({ sessionId, message }) => {
         completeStreaming();
         if (message) {
           updateMessage(sessionId, message.id, {
-            status: AIMessageStatus.Received,
+            status: AIMessageStatus.RECEIVED,
             content: streamingState?.content || message.content
           });
         }
       }),
       
-      service.on(AIEvent.MessageError, ({ sessionId, messageId, error }) => {
+      service.subscribe(AIEvent.MESSAGE_ERROR, ({ messageId, error }) => {
         completeStreaming();
         setError(`message-${messageId}`, {
-          code: AIErrorCode.Unknown,
+          code: AIErrorCode.UNKNOWN,
           message: error.message || 'Failed to send message',
           details: error,
-          sessionId,
-          recoverable: true
         });
       })
     ];
@@ -146,10 +139,9 @@ export const ClaudePanel: React.FC<ClaudePanelProps> = ({
     } catch (error) {
       console.error('Failed to load sessions:', error);
       setError('load-sessions', {
-        code: AIErrorCode.Unknown,
+        code: AIErrorCode.UNKNOWN,
         message: 'Failed to load sessions',
         details: error,
-        recoverable: true
       });
     }
   };
@@ -160,7 +152,7 @@ export const ClaudePanel: React.FC<ClaudePanelProps> = ({
     try {
       const options: CreateSessionOptions = {
         providerId: 'claude', // TODO: Use active provider from store
-        projectId: currentContext?.projectContext?.projectId || 'default',
+        projectId: currentContext?.project?.id || 'default',
         name: name || `Session ${new Date().toLocaleString()}`,
         context: currentContext,
         settings: {
@@ -186,10 +178,9 @@ export const ClaudePanel: React.FC<ClaudePanelProps> = ({
     } catch (error) {
       console.error('Failed to create session:', error);
       setError('create-session', {
-        code: AIErrorCode.Unknown,
+        code: AIErrorCode.UNKNOWN,
         message: 'Failed to create session',
         details: error,
-        recoverable: true
       });
       throw error;
     }
@@ -204,11 +195,9 @@ export const ClaudePanel: React.FC<ClaudePanelProps> = ({
     } catch (error) {
       console.error('Failed to delete session:', error);
       setError(`delete-session-${sessionId}`, {
-        code: AIErrorCode.Unknown,
+        code: AIErrorCode.UNKNOWN,
         message: 'Failed to delete session',
         details: error,
-        sessionId,
-        recoverable: true
       });
     }
   };
@@ -221,11 +210,11 @@ export const ClaudePanel: React.FC<ClaudePanelProps> = ({
     // Add user message to store
     const userMessage: AIMessage = {
       id: messageId,
-      role: AIMessageRole.User,
+      role: AIMessageRole.USER,
       content: request.content,
       timestamp: new Date(),
-      status: AIMessageStatus.Sent,
-      attachments: request.attachments
+      status: AIMessageStatus.SENT,
+      metadata: { attachments: request.attachments }
     };
     
     addMessage(activeSessionId, userMessage);
@@ -238,10 +227,10 @@ export const ClaudePanel: React.FC<ClaudePanelProps> = ({
       const assistantMessageId = `${messageId}-response`;
       const assistantMessage: AIMessage = {
         id: assistantMessageId,
-        role: AIMessageRole.Assistant,
+        role: AIMessageRole.ASSISTANT,
         content: '',
         timestamp: new Date(),
-        status: AIMessageStatus.Pending
+        status: AIMessageStatus.PENDING
       };
       
       addMessage(activeSessionId, assistantMessage);
@@ -250,7 +239,7 @@ export const ClaudePanel: React.FC<ClaudePanelProps> = ({
       // Send message with streaming
       await service.sendStreamingMessage(
         request,
-        (chunk: StreamChunk) => {
+        (_chunk: StreamChunk) => {
           // Chunk updates are handled by event listeners
         }
       );
@@ -259,11 +248,9 @@ export const ClaudePanel: React.FC<ClaudePanelProps> = ({
       completeStreaming();
       
       setError(`send-message-${messageId}`, {
-        code: AIErrorCode.Unknown,
+        code: AIErrorCode.UNKNOWN,
         message: 'Failed to send message',
-        details: error,
-        sessionId: activeSessionId,
-        recoverable: true
+        details: error
       });
       
       throw error;
@@ -280,11 +267,9 @@ export const ClaudePanel: React.FC<ClaudePanelProps> = ({
     } catch (error) {
       console.error('Failed to clear session:', error);
       setError(`clear-session-${activeSessionId}`, {
-        code: AIErrorCode.Unknown,
+        code: AIErrorCode.UNKNOWN,
         message: 'Failed to clear session',
-        details: error,
-        sessionId: activeSessionId,
-        recoverable: true
+        details: error
       });
     }
   };
@@ -299,18 +284,16 @@ export const ClaudePanel: React.FC<ClaudePanelProps> = ({
     } catch (error) {
       console.error('Failed to update context:', error);
       setError(`update-context-${activeSessionId}`, {
-        code: AIErrorCode.Unknown,
+        code: AIErrorCode.UNKNOWN,
         message: 'Failed to update context',
-        details: error,
-        sessionId: activeSessionId,
-        recoverable: true
+        details: error
       });
     }
   };
 
-  const handleCompactModeToggle = () => {
-    updateUIPreferences({ compactMode: !compactMode });
-  };
+  // const handleCompactModeToggle = () => {
+  //   updateUIPreferences({ compactMode: !compactMode });
+  // };
 
   if (!isConnected) {
     return (
@@ -349,7 +332,6 @@ export const ClaudePanel: React.FC<ClaudePanelProps> = ({
       {activeSession ? (
         <ChatInterface
           session={activeSession}
-          messages={messages}
           onSendMessage={sendMessage}
           onClearSession={clearSession}
           onRefresh={updateSessionContext}
@@ -357,13 +339,6 @@ export const ClaudePanel: React.FC<ClaudePanelProps> = ({
           streamingContent={streamingState?.sessionId === activeSessionId ? streamingState.content : ''}
           compactMode={compactMode}
           inputPlaceholder="Ask Claude anything..."
-          onCompactModeToggle={handleCompactModeToggle}
-          showTimestamps={uiPreferences.showTimestamps}
-          showTokenCount={uiPreferences.showTokenCount}
-          enableMarkdown={uiPreferences.enableMarkdown}
-          enableSyntaxHighlighting={uiPreferences.enableSyntaxHighlighting}
-          autoScroll={uiPreferences.autoScroll}
-          fontSize={uiPreferences.fontSize}
         />
       ) : (
         <div className="flex-1 flex items-center justify-center">

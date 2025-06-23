@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { open } from '@tauri-apps/plugin-dialog';
 import { useNavigate } from 'react-router-dom';
-import { Button, CompactThemeSwitcher } from '@code-pilot/ui';
+import { CompactThemeSwitcher } from '@code-pilot/themes';
 import { StartProjectDialog, Template } from '@code-pilot/feature-templates';
 import { Project, CreateProjectDto } from '@code-pilot/types';
 import { Plus, FolderOpen, Sparkles, Zap, Code2, GitBranch, FolderPlus, Command, Settings } from 'lucide-react';

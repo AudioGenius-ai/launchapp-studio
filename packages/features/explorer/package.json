@@ -9,25 +9,26 @@
     "dist"
   ],
   "scripts": {
-    "build": "tsup",
-    "dev": "tsup --watch",
+    "build": "vite build && tsc --emitDeclarationOnly --declaration --declarationDir dist",
+    "dev": "vite build --watch",
     "clean": "rm -rf dist",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@code-pilot/core": "workspace:*",
     "@code-pilot/types": "workspace:*",
-    "@code-pilot/ui": "workspace:*",
-    "@tauri-apps/api": "2.0.3",
-    "lucide-react": "^0.344.0",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "@code-pilot/ui-kit": "workspace:*",
+    "@tauri-apps/api": "2.5.0",
+    "lucide-react": "^0.522.0",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0"
   },
   "devDependencies": {
-    "@types/react": "^19.0.0",
-    "@types/react-dom": "^19.0.0",
-    "tsup": "^8.0.2",
-    "typescript": "^5.3.3"
+    "@types/react": "^19.1.8",
+    "@types/react-dom": "^19.1.6",
+    "@vitejs/plugin-react": "^4.5.2",
+    "vite": "^6.3.5",
+    "typescript": "^5.8.3"
   },
   "peerDependencies": {
     "react": ">=19.0.0",

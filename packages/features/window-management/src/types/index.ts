@@ -1,3 +1,8 @@
+// Re-export types from window.ts (migrated from @code-pilot/types)
+export { WindowType } from './window';
+export type { WindowConfig as WindowConfigBase, WindowState as WindowStateBase } from './window';
+
+// Extended window state with additional properties
 export interface WindowState {
   isMaximized: boolean;
   isMinimized: boolean;
@@ -19,7 +24,9 @@ export interface WindowSize {
   height: number;
 }
 
+// Extended window config with additional properties
 export interface WindowConfig {
+  url?: string;
   title?: string;
   width?: number;
   height?: number;

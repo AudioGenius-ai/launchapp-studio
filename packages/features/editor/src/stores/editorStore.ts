@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { EditorFile, RecentlyClosedTab } from '@code-pilot/types';
+import type { EditorFile, RecentlyClosedTab } from '../types';
 
 interface EditorStore {
   // State

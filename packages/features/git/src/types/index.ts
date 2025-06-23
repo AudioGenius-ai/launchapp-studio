@@ -1,13 +1,5 @@
-// Re-export Git types from @code-pilot/types
-export type {
-  GitStatus,
-  GitFileChange,
-  GitBranch,
-  GitCommit,
-  GitRemote,
-  GitDiff,
-  GitConfig
-} from '@code-pilot/types';
+// Export all Git types from local git.ts
+export * from './git';
 
 // Feature-specific types
 export interface GitPanelConfig {

@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { EnhancedTerminalPanel } from './EnhancedTerminalPanel';
-import { terminalService } from '@code-pilot/core';
-import { Terminal, TerminalData, TERMINAL_THEMES } from '@code-pilot/types';
+import { terminalService } from '../services/terminalService';
+import { Terminal, TerminalData, TERMINAL_THEMES } from '../types';
 
 const DEFAULT_TERMINAL_COLS = 80;
 const DEFAULT_TERMINAL_ROWS = 24;
@@ -38,7 +38,6 @@ export const TerminalPage: React.FC = () => {
   const handleNewTerminal = useCallback(async () => {
     try {
       const terminal = await terminalService.createTerminal({
-        title: 'Terminal',
         cols: DEFAULT_TERMINAL_COLS,
         rows: DEFAULT_TERMINAL_ROWS,
       });
@@ -47,9 +46,9 @@ export const TerminalPage: React.FC = () => {
       setActiveTerminalId(terminal.id);
       
       // Set up data handler for this terminal
-      const unsubscribe = terminalService.onTerminalData(terminal.id, (data: TerminalData) => {
+      const unsubscribe = terminalService.onTerminalData((data: TerminalData) => {
         // The Terminal component will handle the output directly
-        if (data.type === 'exit') {
+        if (data.terminalId === terminal.id && data.type === 'exit') {
           // Remove terminal from list when it exits
           setTerminals(prev => prev.filter(t => t.id !== terminal.id));
           if (activeTerminalId === terminal.id) {

@@ -1,7 +1,15 @@
 import React from 'react';
-import { GitFileChange } from '@code-pilot/types';
+import { GitFileChange } from '../types';
 import { FileChangeItem } from './FileChangeItem';
-import { Checkbox } from '@code-pilot/ui';
+const Checkbox = ({ checked, onCheckedChange, onClick, ...props }: any) => (
+  <input 
+    type="checkbox" 
+    checked={checked} 
+    onChange={(e) => onCheckedChange?.(e.target.checked)} 
+    onClick={onClick}
+    {...props} 
+  />
+);
 import { ChevronDown, ChevronRight } from 'lucide-react';
 
 export interface FileChangesListProps {
@@ -54,8 +62,8 @@ export const FileChangesList: React.FC<FileChangesListProps> = ({
         </button>
         <Checkbox
           checked={allFilesSelected}
-          onCheckedChange={(checked) => onSelectAll(checked as boolean)}
-          onClick={(e) => e.stopPropagation()}
+          onCheckedChange={(checked: boolean) => onSelectAll(checked)}
+          onClick={(e: React.MouseEvent) => e.stopPropagation()}
         />
         <span className="text-xs font-medium flex-1">
           {title} ({files.length})

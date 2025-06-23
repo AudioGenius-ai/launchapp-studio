@@ -1,30 +1,16 @@
-// Shared type definitions
+// Core shared type definitions
+// This package should only contain types that are truly shared across multiple packages
 
-// Project types
-export interface Project {
-  id: string;
-  name: string;
-  path: string;
-  description?: string;
-  createdAt: Date;
-  updatedAt: Date;
-  settings: ProjectSettings;
-}
+// ============================================
+// Core Domain Types
+// ============================================
 
-export interface ProjectSettings {
-  gitEnabled: boolean;
-  defaultBranch: string;
-  aiProvider?: string;
-  extensions: string[];
-}
-
-// Session types
+// Generic Session type - not AI-specific
 export interface Session {
   id: string;
   projectId: string;
   name: string;
   status: SessionStatus;
-  messages: Message[];
   createdAt: Date;
   updatedAt: Date;
 }
@@ -36,7 +22,7 @@ export enum SessionStatus {
   Archived = 'archived'
 }
 
-// AI types
+// Generic Message type - used in multiple contexts
 export interface Message {
   id: string;
   role: 'user' | 'assistant' | 'system';
@@ -45,12 +31,9 @@ export interface Message {
   metadata?: Record<string, any>;
 }
 
-export interface ChatOptions {
-  model?: string;
-  temperature?: number;
-  maxTokens?: number;
-  stream?: boolean;
-}
+// ============================================
+// Utility Types
+// ============================================
 
 // IPC types for Tauri
 export interface TauriCommand<T = any, R = any> {
@@ -59,20 +42,93 @@ export interface TauriCommand<T = any, R = any> {
   response: R;
 }
 
-// Export project types
-export * from './project';
+// Common error type
+export interface AppError {
+  code: string;
+  message: string;
+  details?: any;
+}
 
-// Export filesystem types
-export * from './filesystem';
+// Common result type
+export type Result<T, E = AppError> = 
+  | { ok: true; value: T }
+  | { ok: false; error: E };
 
-// Export editor types
-export * from './editor';
+// ============================================
+// Shared Types from Other Files
+// ============================================
 
-// Export settings types
-export * from './settings';
+// Only export truly shared types from other files
+// From project.ts - these are core domain types
+export type {
+  Project,
+  ProjectSettings,
+  CreateProjectDto,
+  UpdateProjectDto,
+  ProjectQuery,
+  ProjectListResponse,
+  ProjectValidation,
+  ProjectEventPayload
+} from './project';
 
-// Export theme types
-export * from './theme';
+export { ProjectEvent } from './project'
 
-// Export tab management types
-export * from './tabs';
+// From filesystem.ts - used by multiple features
+export type {
+  FileSystemNode,
+  FileOperation,
+  FileWatchEvent,
+  FileSearchOptions,
+  FileTreeState,
+  FileIconType,
+  FileTypeMapping
+} from './filesystem';
+
+export {
+  FILE_TYPE_MAPPINGS,
+  getFileIcon,
+  isTextFile
+} from './filesystem';
+
+// From settings.ts - core app settings
+export type {
+  GeneralSettings,
+  Settings,
+  SettingsKey,
+  SettingsValue,
+  SettingsUpdateEvent
+} from './settings';
+
+export { DEFAULT_SETTINGS } from './settings';
+
+// From theme.ts - shared across UI
+export type {
+  ThemeMode,
+  ThemeColors,
+  Theme,
+  ThemeFonts,
+  ThemeSpacing,
+  ThemeBorderRadius,
+  ThemeTransitions,
+  ThemeZIndex,
+  CustomTheme,
+  ThemePreferences,
+  ThemeProviderProps,
+  ThemeContextValue,
+  CSSVariableMap
+} from './theme';
+
+export { isCustomTheme } from './theme';
+
+// ============================================
+// MIGRATION COMPLETE
+// ============================================
+
+// All feature-specific types have been migrated to their respective packages:
+// - AI types → @code-pilot/feature-ai
+// - Git types → @code-pilot/feature-git
+// - Terminal types → @code-pilot/feature-terminal
+// - Editor types → @code-pilot/feature-editor
+// - Template types → @code-pilot/feature-templates
+// - Window types → @code-pilot/feature-window-management
+// - Tab types → @code-pilot/feature-editor

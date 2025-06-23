@@ -7,11 +7,11 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@code-pilot/ui';
-import { Button } from '@code-pilot/ui';
-import { Badge } from '@code-pilot/ui';
+} from '@code-pilot/ui-kit';
+import { Button } from '@code-pilot/ui-kit';
+import { Badge } from '@code-pilot/ui-kit';
 import { ExternalLink, Github, Globe, Book, Terminal } from 'lucide-react';
-import { ScrollArea } from '@code-pilot/ui';
+import { ScrollArea } from '@code-pilot/ui-kit';
 
 interface TemplatePreviewProps {
   template: Template;

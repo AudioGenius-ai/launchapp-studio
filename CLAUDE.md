@@ -1,4 +1,8 @@
-# Code Pilot Studio v2 - Development Guide
+# You are paid by the hour, you have NO TIME CONSTAINTS, never take shorcuts, if the task is to large split it into more tasks and tackle part by part
+
+- ALWAYS USE PARALLELIZE AGENTS WHEN APPLICABLE
+
+## Code Pilot Studio v2 - Development Guide
 
 ## Project Overview
 
@@ -7,6 +11,7 @@ Code Pilot Studio v2 is a next-generation AI-powered IDE built with modern web t
 ## Current Status
 
 ### ✅ Phase 1: Foundation (Completed)
+
 - Monorepo setup with pnpm workspaces
 - Turborepo configuration for efficient builds
 - TypeScript project references
@@ -14,6 +19,7 @@ Code Pilot Studio v2 is a next-generation AI-powered IDE built with modern web t
 - Shared packages (core, ui, types, utils)
 
 ### ✅ Phase 2: Core Features (Completed)
+
 - **Project Management System**: Full CRUD operations with UI
 - **File Explorer**: Tree view with search, context menus, and file watching
 - **Code Editor**: Monaco editor with syntax highlighting for 20+ languages
@@ -23,6 +29,7 @@ Code Pilot Studio v2 is a next-generation AI-powered IDE built with modern web t
 - **Keyboard Shortcuts**: Configurable key bindings
 
 ### ✅ Phase 3: Advanced Features (Completed)
+
 - **Terminal Integration**: Implemented as `tauri-plugin-terminal` with xterm.js
   - Multiple concurrent terminal sessions
   - PTY backend with shell detection
@@ -270,6 +277,7 @@ For new features, follow the modular architecture:
 ## Phase 4: Next Steps
 
 ### Planned Features
+
 - **SQLite Persistence**: Database layer for projects, sessions, and settings
 - **MCP Protocol Support**: Generic Model Context Protocol plugin
 - **Plugin Marketplace**: Discovery and installation of community plugins
@@ -278,7 +286,7 @@ For new features, follow the modular architecture:
 
 ## AI Integration (Implemented)
 
-### Claude CLI Integration 
+### Claude CLI Integration
 
 Successfully implemented as `tauri-plugin-claude` with the following features:
 
@@ -374,6 +382,7 @@ plugins/
 ### Implemented Plugin Features
 
 #### Terminal Plugin
+
 - Create/destroy terminal sessions
 - Shell detection (bash, zsh, fish, PowerShell)
 - PTY communication with resize support
@@ -382,6 +391,7 @@ plugins/
 - Multiple concurrent terminals
 
 #### Git Plugin
+
 - Full Git operations (status, diff, commit, branch, etc.)
 - Repository management
 - Remote operations (fetch, pull, push)
@@ -390,6 +400,7 @@ plugins/
 - Blame and log viewing
 
 #### Claude Plugin
+
 - Session creation and management
 - Real-time message streaming
 - MCP tool discovery
@@ -398,6 +409,7 @@ plugins/
 - Concurrent session support
 
 #### MCP Webserver Plugin
+
 - External MCP server process management
 - Automatic port allocation and health checking
 - Support for bundled sidecars and external servers
@@ -439,6 +451,7 @@ const instance = await invoke('plugin:mcp-webserver|start_server', {
 ## Development Best Practices
 
 ### Project Management
+
 - Always use pnpm for package management
 - Follow the monorepo structure with workspace protocols
 - Use TypeScript for all new code
@@ -446,6 +459,7 @@ const instance = await invoke('plugin:mcp-webserver|start_server', {
 - Create feature packages for complex UI features
 
 ### Code Quality
+
 - Write comprehensive TypeScript types
 - Use proper error handling with Result types in Rust
 - Implement proper cleanup in lifecycle hooks
@@ -454,6 +468,7 @@ const instance = await invoke('plugin:mcp-webserver|start_server', {
 - Follow consistent export patterns
 
 ### Frontend Architecture
+
 - Keep `apps/desktop/src` minimal - just shell and routing
 - Place all feature logic in `packages/features/*`
 - Use `packages/ui-kit` for reusable components
@@ -461,6 +476,7 @@ const instance = await invoke('plugin:mcp-webserver|start_server', {
 - Centralize state management in `packages/state`
 
 ### Performance
+
 - Use virtual scrolling for large lists
 - Implement debouncing for frequent updates
 - Cache expensive operations
@@ -472,13 +488,16 @@ const instance = await invoke('plugin:mcp-webserver|start_server', {
 The application includes bundled sidecar binaries for extended functionality:
 
 ### MCP Server Sidecar
+
 Located at `apps/desktop/src-tauri/binaries/mcp-server/`, this provides:
+
 - JSON-RPC 2.0 MCP protocol implementation
 - Tool discovery and execution
 - Health check endpoints
 - CORS support for web clients
 
 ### Building Sidecars
+
 Sidecars are automatically built before dev/build commands:
 
 ```bash
@@ -492,7 +511,9 @@ pnpm tauri:build # Runs build:sidecars first
 ```
 
 ### Configuration
+
 In `tauri.conf.json`:
+
 ```json
 {
   "bundle": {
@@ -504,6 +525,7 @@ In `tauri.conf.json`:
 ```
 
 The build script automatically:
+
 1. Detects the target platform triple
 2. Builds the sidecar in release mode
 3. Renames with the platform suffix (e.g., `-aarch64-apple-darwin`)
@@ -518,6 +540,7 @@ The build script automatically:
 ## Project Policies
 
 ### Development Guidelines
+
 - Never create enhanced or modified versions of existing files
 - Only create new files when they don't already exist
 - Follow the established patterns and conventions
@@ -526,12 +549,14 @@ The build script automatically:
 ## Resources and Documentation
 
 ### Key Documentation Files
+
 - `REBUILD_PLAN.md`: Detailed rebuild strategy and progress tracking
 - `TERMINAL_GIT_INTEGRATION_PLAN.md`: Terminal and Git implementation details
 - `FRONTEND_REORGANIZATION_PLAN.md`: Frontend modularization strategy
 - `plugins/*/README.md`: Individual plugin documentation
 
 ### External Resources
+
 - [Tauri v2 Documentation](https://v2.tauri.app/)
 - [xterm.js Documentation](https://xtermjs.org/)
 - [Monaco Editor API](https://microsoft.github.io/monaco-editor/)
@@ -540,6 +565,7 @@ The build script automatically:
 ## Contributing
 
 When contributing to this project:
+
 1. Review this guide and related documentation
 2. Follow the established patterns and conventions
 3. Test your changes thoroughly

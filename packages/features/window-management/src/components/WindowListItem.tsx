@@ -1,6 +1,5 @@
-import React from 'react';
 import { X, Maximize2, Minimize2, Square, Pin } from 'lucide-react';
-import { cn } from '@code-pilot/ui';
+import { cn } from '@code-pilot/ui-kit';
 import type { WindowInfo } from '../types';
 
 interface WindowListItemProps {

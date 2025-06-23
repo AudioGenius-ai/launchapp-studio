@@ -1,4 +1,4 @@
-import { appWindow } from '@tauri-apps/api/window';
+import { getCurrentWindow } from '@tauri-apps/api/window';
 import { invoke } from '@tauri-apps/api/core';
 
 /**
@@ -33,6 +33,8 @@ export class AppStartup {
    * Setup window event listeners
    */
   private static async setupWindowListeners(): Promise<void> {
+    const appWindow = getCurrentWindow();
+    
     // Handle window close event
     await appWindow.listen('tauri://close-requested', async () => {
       // Perform cleanup before closing

@@ -1,7 +1,7 @@
 import React from 'react';
+import { EditorTab } from "../types";
 import { X, Pin, PinOff } from 'lucide-react';
-import { EditorTab } from '@code-pilot/types';
-import { cn } from '@code-pilot/ui';
+import { cn } from '@code-pilot/ui-kit';
 
 interface EditorTabsProps {
   tabs: EditorTab[];
@@ -24,128 +24,78 @@ export const EditorTabs: React.FC<EditorTabsProps> = ({
   onTabReorder,
   className
 }) => {
-  const [draggedTab, setDraggedTab] = React.useState<number | null>(null);
-  const [dragOverIndex, setDragOverIndex] = React.useState<number | null>(null);
-
-  const handleDragStart = (e: React.DragEvent, index: number, tab: EditorTab) => {
-    setDraggedTab(index);
+  const handleDragStart = (e: React.DragEvent, tab: EditorTab, index: number) => {
     e.dataTransfer.effectAllowed = 'move';
-    // Set drag data for cross-group dragging
-    e.dataTransfer.setData('application/tab-drag', JSON.stringify({
-      tabId: tab.id,
-      sourceIndex: index
-    }));
+    e.dataTransfer.setData('application/tab-drag', JSON.stringify({ tabId: tab.id, index }));
   };
 
-  const handleDragOver = (e: React.DragEvent, index: number) => {
+  const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
     e.dataTransfer.dropEffect = 'move';
-    setDragOverIndex(index);
-  };
-
-  const handleDragLeave = () => {
-    setDragOverIndex(null);
   };
 
   const handleDrop = (e: React.DragEvent, dropIndex: number) => {
     e.preventDefault();
-    if (draggedTab !== null && draggedTab !== dropIndex) {
-      onTabReorder?.(draggedTab, dropIndex);
-    }
-    setDraggedTab(null);
-    setDragOverIndex(null);
-  };
-
-  const handleDragEnd = () => {
-    setDraggedTab(null);
-    setDragOverIndex(null);
-  };
-
-  const handleTabClick = (e: React.MouseEvent, tabId: string) => {
-    if (e.button === 1) {
-      // Middle click to close
-      e.preventDefault();
-      onTabClose(tabId);
-    } else if (e.button === 0) {
-      // Left click to activate
-      onTabClick(tabId);
-    }
-  };
-
-  const handleCloseClick = (e: React.MouseEvent, tabId: string) => {
-    e.stopPropagation();
-    onTabClose(tabId);
-  };
-
-  const handlePinClick = (e: React.MouseEvent, tab: EditorTab) => {
-    e.stopPropagation();
-    if (tab.isPinned) {
-      onTabUnpin?.(tab.id);
-    } else {
-      onTabPin?.(tab.id);
+    const data = e.dataTransfer.getData('application/tab-drag');
+    if (data && onTabReorder) {
+      const { index: dragIndex } = JSON.parse(data);
+      if (dragIndex !== dropIndex) {
+        onTabReorder(dragIndex, dropIndex);
+      }
     }
   };
 
   return (
-    <div className={cn(
-      'flex items-center bg-gray-900 border-b border-gray-800 overflow-x-auto scrollbar-thin scrollbar-thumb-gray-700',
-      className
-    )}>
-      <div className="flex">
+    <div className={cn('flex items-center bg-gray-100 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700', className)}>
+      <div className="flex overflow-x-auto">
         {tabs.map((tab, index) => (
           <div
             key={tab.id}
-            className={cn(
-              'group relative flex items-center px-3 py-2 text-sm cursor-pointer select-none transition-colors',
-              'border-r border-gray-800 hover:bg-gray-800',
-              activeTabId === tab.id && 'bg-gray-800 text-white',
-              activeTabId !== tab.id && 'text-gray-400',
-              dragOverIndex === index && 'border-l-2 border-blue-500'
-            )}
-            draggable={!tab.isPinned}
-            onDragStart={(e) => handleDragStart(e, index, tab)}
-            onDragOver={(e) => handleDragOver(e, index)}
-            onDragLeave={handleDragLeave}
+            draggable
+            onDragStart={(e) => handleDragStart(e, tab, index)}
+            onDragOver={handleDragOver}
             onDrop={(e) => handleDrop(e, index)}
-            onDragEnd={handleDragEnd}
-            onMouseDown={(e) => handleTabClick(e, tab.id)}
-            onAuxClick={(e) => handleTabClick(e, tab.id)}
-            onContextMenu={(e) => {
-              e.preventDefault();
-              // Parent component can handle context menu
-            }}
+            className={cn(
+              'group flex items-center px-3 py-2 border-r border-gray-200 dark:border-gray-700 cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700',
+              activeTabId === tab.id && 'bg-white dark:bg-gray-900'
+            )}
+            onClick={() => onTabClick(tab.id)}
           >
             {tab.isPinned && (
               <Pin className="w-3 h-3 mr-1 text-gray-500" />
             )}
-            
-            <span className={cn(
-              'mr-2',
-              tab.isDirty && 'italic'
-            )}>
+            <span className={cn('text-sm', tab.isDirty && 'italic')}>
               {tab.title}
-              {tab.isDirty && <span className="ml-1">•</span>}
+              {tab.isDirty && <span className="ml-1 text-gray-500">•</span>}
             </span>
-
-            <div className="flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
-              {onTabPin && onTabUnpin && (
+            <div className="ml-2 flex items-center opacity-0 group-hover:opacity-100 transition-opacity">
+              {tab.isPinned && onTabUnpin ? (
                 <button
-                  className="p-0.5 hover:bg-gray-700 rounded"
-                  onClick={(e) => handlePinClick(e, tab)}
-                  title={tab.isPinned ? 'Unpin' : 'Pin'}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onTabUnpin(tab.id);
+                  }}
+                  className="p-0.5 hover:bg-gray-300 dark:hover:bg-gray-600 rounded"
                 >
-                  {tab.isPinned ? (
-                    <PinOff className="w-3 h-3" />
-                  ) : (
-                    <Pin className="w-3 h-3" />
-                  )}
+                  <PinOff className="w-3 h-3" />
                 </button>
-              )}
-              
+              ) : onTabPin ? (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onTabPin(tab.id);
+                  }}
+                  className="p-0.5 hover:bg-gray-300 dark:hover:bg-gray-600 rounded"
+                >
+                  <Pin className="w-3 h-3" />
+                </button>
+              ) : null}
               <button
-                className="p-0.5 hover:bg-gray-700 rounded"
-                onClick={(e) => handleCloseClick(e, tab.id)}
-                title="Close"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onTabClose(tab.id);
+                }}
+                className="p-0.5 hover:bg-gray-300 dark:hover:bg-gray-600 rounded ml-1"
               >
                 <X className="w-3 h-3" />
               </button>

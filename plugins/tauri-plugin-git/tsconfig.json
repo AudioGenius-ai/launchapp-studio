@@ -1,17 +1,12 @@
 {
+  "extends": "../tsconfig.base.json",
   "compilerOptions": {
-    "target": "ES2020",
-    "module": "ESNext",
-    "moduleResolution": "node",
+    "rootDir": "./src-js",
+    "outDir": "./dist-js",
     "declaration": true,
     "declarationMap": true,
-    "outDir": "./dist-js",
-    "rootDir": "./guest-js/src",
-    "strict": true,
-    "esModuleInterop": true,
-    "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true
+    "emitDeclarationOnly": true,
+    "noEmit": false
   },
-  "include": ["guest-js/src/**/*"],
-  "exclude": ["node_modules", "dist-js"]
+  "include": ["src-js/**/*"]
 }

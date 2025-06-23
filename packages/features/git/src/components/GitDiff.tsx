@@ -1,7 +1,31 @@
 import React, { useState, useEffect } from 'react';
-import { ScrollArea, Button } from '@code-pilot/ui';
+import { clsx } from 'clsx';
+import { twMerge } from 'tailwind-merge';
+
+const cn = (...inputs: any[]) => twMerge(clsx(inputs));
+const Button = ({ children, onClick, className, size, variant, ...props }: any) => (
+  <button 
+    onClick={onClick} 
+    className={cn(
+      'inline-flex items-center justify-center rounded',
+      size === 'sm' && 'h-8 px-3',
+      size === 'icon' && 'h-8 w-8',
+      variant === 'ghost' && 'hover:bg-gray-100 dark:hover:bg-gray-800',
+      className
+    )} 
+    {...props}
+  >
+    {children}
+  </button>
+);
+
+const ScrollArea = ({ children, className }: any) => (
+  <div className={cn('overflow-auto', className)}>
+    {children}
+  </div>
+);
 import { FileCode, X, Copy, Download } from 'lucide-react';
-import { gitService } from '@code-pilot/core';
+import { gitService } from '../services/gitService';
 
 export interface GitDiffProps {
   filePath: string;
@@ -33,13 +57,17 @@ export const GitDiff: React.FC<GitDiffProps> = ({
       const diff = await gitService.getDiffFile(repoPath, filePath, staged);
       // Convert GitDiff to string representation
       let diffContent = '';
-      if (diff && diff.hunks) {
-        diff.hunks.forEach(hunk => {
-          diffContent += hunk.header + '\n';
-          hunk.lines.forEach(line => {
-            const prefix = line.type === 'add' ? '+' : line.type === 'delete' ? '-' : ' ';
-            diffContent += prefix + line.content + '\n';
-          });
+      if (diff && diff.files) {
+        diff.files.forEach((file: any) => {
+          if (file.hunks) {
+            file.hunks.forEach((hunk: any) => {
+              diffContent += `@@ -${hunk.oldStart},${hunk.oldLines} +${hunk.newStart},${hunk.newLines} @@\n`;
+              hunk.lines.forEach((line: any) => {
+                const prefix = line.type === 'added' ? '+' : line.type === 'removed' ? '-' : ' ';
+                diffContent += prefix + line.content + '\n';
+              });
+            });
+          }
         });
       }
       setDiff(diffContent);

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { invoke } from '@tauri-apps/api/core';
-import { Button } from '@code-pilot/ui';
+import { Button } from '@code-pilot/ui-kit';
 
 export const ClaudePage = () => {
   const [sessionId, setSessionId] = useState<string | null>(null);

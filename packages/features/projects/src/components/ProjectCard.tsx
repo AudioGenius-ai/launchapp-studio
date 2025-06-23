@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Project } from '@code-pilot/types';
 import { Folder, GitBranch, Calendar, MoreVertical } from 'lucide-react';
-import { cn } from '@code-pilot/ui';
+import { cn } from '@code-pilot/ui-kit';
 
 interface ProjectCardProps {
   project: Project;

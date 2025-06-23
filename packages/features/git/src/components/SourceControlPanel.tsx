@@ -1,7 +1,30 @@
 import React, { useState, useCallback } from 'react';
-import { GitStatus } from '@code-pilot/types';
+import { GitStatus, GitFileStatus } from '../types';
 import { FileChangesList } from './FileChangesList';
-import { Button, cn } from '@code-pilot/ui';
+import { clsx } from 'clsx';
+import { twMerge } from 'tailwind-merge';
+
+const cn = (...inputs: any[]) => twMerge(clsx(inputs));
+const Button = ({ children, onClick, className, disabled, size, variant, title, ...props }: any) => (
+  <button 
+    onClick={onClick} 
+    className={cn(
+      'inline-flex items-center justify-center rounded',
+      size === 'sm' && 'h-8 px-3 text-xs',
+      size === 'icon' && 'h-8 w-8',
+      !size && 'h-10 px-4 py-2',
+      variant === 'ghost' && 'hover:bg-gray-100 dark:hover:bg-gray-800',
+      variant === 'default' && 'bg-primary text-primary-foreground hover:bg-primary/90',
+      disabled && 'opacity-50 cursor-not-allowed',
+      className
+    )} 
+    disabled={disabled}
+    title={title}
+    {...props}
+  >
+    {children}
+  </button>
+);
 import { 
   GitBranch, 
   GitCommit, 
@@ -64,8 +87,8 @@ export const SourceControlPanel: React.FC<SourceControlPanelProps> = ({
     }
   }, []);
 
-  const hasStagedChanges = status && status.staged.length > 0;
-  const hasUnstagedChanges = status && (status.unstaged.length > 0 || status.untracked.length > 0);
+  const hasStagedChanges = status && status.staged && status.staged.length > 0;
+  const hasUnstagedChanges = status && ((status.unstaged && status.unstaged.length > 0) || (status.untracked && status.untracked.length > 0));
   const hasChanges = hasStagedChanges || hasUnstagedChanges;
 
   return (
@@ -77,11 +100,11 @@ export const SourceControlPanel: React.FC<SourceControlPanelProps> = ({
           <span className="font-medium text-sm">
             {status?.branch || 'No repository'}
           </span>
-          {status && (status.ahead > 0 || status.behind > 0) && (
+          {status && ((status.ahead && status.ahead > 0) || (status.behind && status.behind > 0)) && (
             <span className="text-xs text-muted-foreground">
-              {status.ahead > 0 && `↑${status.ahead}`}
-              {status.ahead > 0 && status.behind > 0 && ' '}
-              {status.behind > 0 && `↓${status.behind}`}
+              {status.ahead && status.ahead > 0 && `↑${status.ahead}`}
+              {status.ahead && status.ahead > 0 && status.behind && status.behind > 0 && ' '}
+              {status.behind && status.behind > 0 && `↓${status.behind}`}
             </span>
           )}
         </div>
@@ -163,9 +186,9 @@ export const SourceControlPanel: React.FC<SourceControlPanelProps> = ({
             {hasStagedChanges && (
               <FileChangesList
                 title="Staged Changes"
-                files={status.staged}
-                allFilesSelected={status.staged.every(f => selectedFiles.has(f.path))}
-                onSelectAll={(selected) => handleSelectAll(status.staged.map(f => f.path), selected)}
+                files={status.staged || []}
+                allFilesSelected={status.staged?.every(f => selectedFiles.has(f.path)) || false}
+                onSelectAll={(selected) => handleSelectAll(status.staged?.map(f => f.path) || [], selected)}
                 onFileSelect={handleFileSelect}
                 onFileAction={(file) => onUnstageFile(file.path)}
                 onOpenFile={onOpenFile}
@@ -177,12 +200,12 @@ export const SourceControlPanel: React.FC<SourceControlPanelProps> = ({
             )}
 
             {/* Unstaged Changes */}
-            {status.unstaged.length > 0 && (
+            {status.unstaged && status.unstaged.length > 0 && (
               <FileChangesList
                 title="Changes"
-                files={status.unstaged}
-                allFilesSelected={status.unstaged.every(f => selectedFiles.has(f.path))}
-                onSelectAll={(selected) => handleSelectAll(status.unstaged.map(f => f.path), selected)}
+                files={status.unstaged || []}
+                allFilesSelected={status.unstaged?.every(f => selectedFiles.has(f.path)) || false}
+                onSelectAll={(selected) => handleSelectAll(status.unstaged?.map(f => f.path) || [], selected)}
                 onFileSelect={handleFileSelect}
                 onFileAction={(file) => onStageFile(file.path)}
                 onOpenFile={onOpenFile}
@@ -194,16 +217,18 @@ export const SourceControlPanel: React.FC<SourceControlPanelProps> = ({
             )}
 
             {/* Untracked Files */}
-            {status.untracked.length > 0 && (
+            {status.untracked && status.untracked.length > 0 && (
               <FileChangesList
                 title="Untracked Files"
-                files={status.untracked.map(path => ({ 
+                files={status.untracked?.map(path => ({ 
                   path, 
-                  status: 'added' as const,
+                  status: GitFileStatus.NEW,
+                  staged: false,
+                  unstaged: true,
                   oldPath: undefined 
-                }))}
-                allFilesSelected={status.untracked.every(f => selectedFiles.has(f))}
-                onSelectAll={(selected) => handleSelectAll(status.untracked, selected)}
+                })) || []}
+                allFilesSelected={status.untracked?.every(f => selectedFiles.has(f)) || false}
+                onSelectAll={(selected) => handleSelectAll(status.untracked || [], selected)}
                 onFileSelect={handleFileSelect}
                 onFileAction={(file) => onStageFile(file.path)}
                 onOpenFile={onOpenFile}
@@ -215,7 +240,7 @@ export const SourceControlPanel: React.FC<SourceControlPanelProps> = ({
             )}
 
             {/* Conflicted Files */}
-            {status.conflicted.length > 0 && (
+            {status.conflicted && status.conflicted.length > 0 && (
               <div className="px-3 py-2">
                 <h3 className="text-xs font-medium text-destructive mb-2">
                   Merge Conflicts ({status.conflicted.length})

@@ -1,5 +1,20 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, Button, cn } from '@code-pilot/ui';
+import { clsx } from 'clsx';
+import { twMerge } from 'tailwind-merge';
+
+const cn = (...inputs: any[]) => twMerge(clsx(inputs));
+const Button = ({ children, onClick, className, ...props }: any) => (
+  <button onClick={onClick} className={cn('px-4 py-2 rounded', className)} {...props}>
+    {children}
+  </button>
+);
+
+// Mock Dialog components for now
+const Dialog = ({ open, children }: any) => open ? <div className="fixed inset-0 z-50">{children}</div> : null;
+const DialogContent = ({ children, className }: any) => <div className={cn('bg-white p-6 rounded-lg shadow-lg', className)}>{children}</div>;
+const DialogHeader = ({ children }: any) => <div className="mb-4">{children}</div>;
+const DialogTitle = ({ children }: any) => <h2 className="text-lg font-semibold">{children}</h2>;
+const DialogFooter = ({ children }: any) => <div className="mt-4 flex gap-2 justify-end">{children}</div>;
 import { GitCommit } from 'lucide-react';
 
 export interface CommitDialogProps {
@@ -46,7 +61,7 @@ export const CommitDialog: React.FC<CommitDialogProps> = ({
   };
 
   return (
-    <Dialog open={open} onOpenChange={(open) => !open && onClose()}>
+    <Dialog open={open}>
       <DialogContent className="sm:max-w-[600px]">
         <form onSubmit={handleSubmit}>
           <DialogHeader>

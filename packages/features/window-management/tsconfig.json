@@ -5,10 +5,5 @@
     "rootDir": "./src"
   },
   "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist"],
-  "references": [
-    { "path": "../../core" },
-    { "path": "../../types" },
-    { "path": "../../ui" }
-  ]
+  "exclude": ["node_modules", "dist"]
 }

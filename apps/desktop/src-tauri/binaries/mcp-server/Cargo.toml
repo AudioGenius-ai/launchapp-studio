@@ -3,28 +3,40 @@ name = "launchapp-mcp-sidecar"
 version = "0.1.0"
 edition = "2021"
 
+[[bin]]
+name = "launchapp-mcp-sidecar"
+path = "src/main.rs"
+
 [dependencies]
-axum = "0.7"
-tokio = { version = "1", features = ["full"] }
+# Official MCP Rust SDK
+rmcp = { version = "0.1", features = ["server", "transport-io", "macros"] }
+
+# Async runtime
+tokio = { version = "1.0", features = ["full"] }
+
+# Serialization
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
-tower = "0.4"
-tower-http = { version = "0.5", features = ["cors"] }
-tracing = "0.1"
-tracing-subscriber = "0.3"
+schemars = { version = "0.8", features = ["derive"] }
+
+# Error handling
 anyhow = "1.0"
-uuid = { version = "1.10", features = ["v4", "serde"] }
-futures = "0.3"
-axum-extra = { version = "0.9", features = ["typed-header"] }
 
-# For finding available port
-portpicker = "0.1"
+# Logging
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 
-# For SSE support
-tokio-stream = "0.1"
+# UUID generation
+uuid = { version = "1.0", features = ["v4", "serde"] }
 
-# For timestamps
+# Date/time handling
 chrono = { version = "0.4", features = ["serde"] }
+
+# File system operations
+tokio-fs = "0.1"
+
+# HTTP client for potential future use
+reqwest = { version = "0.11", features = ["json"], optional = true }
 
 [profile.release]
 opt-level = "z"     # Optimize for size

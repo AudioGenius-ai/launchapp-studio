@@ -1,5 +1,5 @@
 import React from 'react';
-import { ThemeProvider } from '@code-pilot/ui';
+import { ThemeProvider } from '@code-pilot/themes';
 
 interface ProvidersProps {
   children: React.ReactNode;

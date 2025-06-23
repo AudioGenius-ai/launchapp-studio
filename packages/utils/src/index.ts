@@ -34,3 +34,13 @@ export function formatDate(date: Date): string {
 export function classNames(...classes: (string | undefined | null | false)[]): string {
   return classes.filter(Boolean).join(' ');
 }
+
+// Export cn utility for tailwind class merging
+export { cn } from './cn';
+
+// Export Logger utility
+export { Logger } from './logger';
+export type { LogLevel, LoggerOptions } from './logger';
+
+// Export EventEmitter for browser environments
+export { EventEmitter, TypedEventEmitter } from './eventEmitter';

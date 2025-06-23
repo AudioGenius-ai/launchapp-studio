@@ -3,8 +3,11 @@ import {
   EditorFile, 
   EditorPosition,
   SUPPORTED_LANGUAGES 
-} from '@code-pilot/types';
-import { cn } from '@code-pilot/ui';
+} from "../types";
+import { clsx } from 'clsx';
+import { twMerge } from 'tailwind-merge';
+
+const cn = (...inputs: any[]) => twMerge(clsx(inputs));
 
 interface EditorStatusBarProps {
   file: EditorFile;

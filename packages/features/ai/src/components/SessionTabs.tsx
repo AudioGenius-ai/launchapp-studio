@@ -1,5 +1,5 @@
 import React from 'react';
-import type { AISession } from '@code-pilot/types';
+import type { AISession } from '../types';
 import { cn } from '@code-pilot/utils';
 import { SessionStatus } from './SessionStatus';
 

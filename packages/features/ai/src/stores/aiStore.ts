@@ -6,14 +6,12 @@ import {
   AIMessage,
   AISessionStatus,
   AIError,
-  AIProviderConfig,
   StreamChunk,
   AIContext,
   CreateSessionOptions,
   UpdateSessionOptions,
-  AIPanelSettings,
-  AIErrorCode
-} from '@code-pilot/types';
+  AIPanelSettings
+} from '../types';
 import { createTauriStorage } from './storageAdapter';
 
 // UI preferences specific to the panel
@@ -168,7 +166,7 @@ export const useAIStore = create<AIStoreState>()(
           providerId: options.providerId,
           projectId: options.projectId,
           name: options.name || `Session ${new Date().toLocaleString()}`,
-          status: AISessionStatus.Active,
+          status: AISessionStatus.ACTIVE,
           messages: [],
           context: options.context,
           createdAt: new Date(),

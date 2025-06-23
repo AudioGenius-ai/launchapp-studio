@@ -1,6 +1,6 @@
 import React from 'react';
-import type { AISessionStatus } from '@code-pilot/types';
-import { cn } from '@code-pilot/utils';
+import { AISessionStatus } from '../types';
+import { cn } from '@code-pilot/ui-kit';
 
 export interface SessionStatusProps {
   status: AISessionStatus;
@@ -17,18 +17,16 @@ export const SessionStatus: React.FC<SessionStatusProps> = ({
 }) => {
   const getStatusColor = () => {
     switch (status) {
-      case AISessionStatus.Active:
+      case AISessionStatus.ACTIVE:
         return 'bg-success';
-      case AISessionStatus.Idle:
+      case AISessionStatus.IDLE:
         return 'bg-muted-foreground';
-      case AISessionStatus.Processing:
+      case AISessionStatus.PAUSED:
         return 'bg-primary';
-      case AISessionStatus.Error:
+      case AISessionStatus.ERROR:
         return 'bg-destructive';
-      case AISessionStatus.Terminated:
+      case AISessionStatus.ENDED:
         return 'bg-muted';
-      case AISessionStatus.Suspended:
-        return 'bg-warning';
       default:
         return 'bg-muted';
     }
@@ -36,18 +34,16 @@ export const SessionStatus: React.FC<SessionStatusProps> = ({
 
   const getStatusLabel = () => {
     switch (status) {
-      case AISessionStatus.Active:
+      case AISessionStatus.ACTIVE:
         return 'Active';
-      case AISessionStatus.Idle:
+      case AISessionStatus.IDLE:
         return 'Idle';
-      case AISessionStatus.Processing:
-        return 'Processing';
-      case AISessionStatus.Error:
+      case AISessionStatus.PAUSED:
+        return 'Paused';
+      case AISessionStatus.ERROR:
         return 'Error';
-      case AISessionStatus.Terminated:
-        return 'Terminated';
-      case AISessionStatus.Suspended:
-        return 'Suspended';
+      case AISessionStatus.ENDED:
+        return 'Ended';
       default:
         return 'Unknown';
     }
@@ -66,7 +62,7 @@ export const SessionStatus: React.FC<SessionStatusProps> = ({
           'rounded-full inline-block',
           getStatusColor(),
           sizeClasses[size],
-          status === AISessionStatus.Processing && 'animate-pulse'
+          status === AISessionStatus.ACTIVE && 'animate-pulse'
         )}
         title={getStatusLabel()}
       />

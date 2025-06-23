@@ -4,8 +4,10 @@ import {
   AIProvider,
   AIProviderConfig,
   AICapabilities,
-  AIFeature
-} from '@code-pilot/types';
+  AIFeature,
+  AIProviderType,
+  AIProviderStatus
+} from '../types';
 import { useAIStore } from '../stores/aiStore';
 
 /**
@@ -55,26 +57,28 @@ export const useAIProviders = () => {
       const claudeProvider: AIProvider = {
         id: 'claude-default',
         name: 'Claude (CLI)',
-        type: 'claude',
+        type: AIProviderType.CLAUDE,
+        status: AIProviderStatus.CONNECTED,
+        config: {
+          type: AIProviderType.CLAUDE,
+          name: 'Claude (CLI)',
+          features: [AIFeature.CHAT]
+        },
         capabilities: {
           streaming: true,
           tools: true,
           multiModal: true,
-          maxTokens: 200000,
-          models: ['claude-3-opus-20240229', 'claude-3-sonnet-20240229'],
-          features: [
-            AIFeature.CodeGeneration,
-            AIFeature.CodeCompletion,
-            AIFeature.CodeExplanation,
-            AIFeature.Refactoring,
-            AIFeature.Testing,
-            AIFeature.Documentation,
-            AIFeature.ChatAssistant,
-            AIFeature.VisionAnalysis,
-            AIFeature.FileAnalysis
+          contextWindow: 200000,
+          maxOutputTokens: 4096,
+          supportedFeatures: [
+            AIFeature.CHAT,
+            AIFeature.CODE_COMPLETION,
+            AIFeature.CODE_EXPLANATION,
+            AIFeature.CODE_REFACTORING,
+            AIFeature.TESTING,
+            AIFeature.DOCUMENTATION
           ]
         },
-        isActive: true,
         createdAt: new Date(),
         updatedAt: new Date()
       };
@@ -124,14 +128,7 @@ export const useAIProviders = () => {
 
   const activateProvider = useCallback(async (providerId: string) => {
     try {
-      // Deactivate current provider
-      const currentProvider = getActiveProvider();
-      if (currentProvider) {
-        updateProvider(currentProvider.id, { isActive: false });
-      }
-      
-      // Activate new provider
-      updateProvider(providerId, { isActive: true });
+      // Simply update the active provider
       setActiveProvider(providerId);
       
       // Notify backend
@@ -175,15 +172,15 @@ export const useAIProviders = () => {
     try {
       const provider: Partial<AIProvider> = {
         name,
-        type: 'custom',
+        type: AIProviderType.CUSTOM,
         config,
         capabilities: {
           streaming: false,
           tools: false,
           multiModal: false,
-          maxTokens: 4096,
-          models: [],
-          features: [AIFeature.ChatAssistant],
+          contextWindow: 4096,
+          maxOutputTokens: 4096,
+          supportedFeatures: [AIFeature.CHAT],
           ...capabilities
         }
       };

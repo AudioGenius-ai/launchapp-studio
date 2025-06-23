@@ -1,8 +1,8 @@
 import { useState, useRef, useEffect } from 'react';
-import { RecentlyClosedTabs } from '@code-pilot/ui-kit';
+import { RecentlyClosedTabs } from './RecentlyClosedTabs';
 import { TabManagerContainer } from './TabManagerContainer';
 import { FileService } from '@code-pilot/core';
-import type { EditorFile, TabSessionData } from '@code-pilot/types';
+import type { EditorFile, TabSessionData } from "../types";
 import { invoke } from '@tauri-apps/api/core';
 import { X, RotateCcw, Save, SaveAll } from 'lucide-react';
 import { useEditorStore } from '../stores';

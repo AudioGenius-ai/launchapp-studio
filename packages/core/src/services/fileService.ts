@@ -186,6 +186,10 @@ export class FileService {
     this.fileTreeState.rootPath = path;
   }
 
+  getCurrentProjectPath(): string {
+    return this.fileTreeState.rootPath;
+  }
+
   toggleExpanded(path: string): void {
     if (this.fileTreeState.expandedPaths.has(path)) {
       this.fileTreeState.expandedPaths.delete(path);

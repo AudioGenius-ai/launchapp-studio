@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { FileTree } from '@code-pilot/ui-kit';
+import { FileTree } from './FileTree';
 import { fileService } from '@code-pilot/core';
 import { FileSystemNode } from '@code-pilot/types';
 import { invoke } from '@tauri-apps/api/core';
@@ -24,7 +24,7 @@ export const FileExplorer: React.FC = () => {
   const loadProjectPath = async () => {
     try {
       // First, check if fileService already has a project path
-      let projectPath = fileService.getCurrentProjectPath();
+      let projectPath: string | undefined = fileService.getCurrentProjectPath() || undefined;
       
       if (!projectPath) {
         // Check window globals (set by Tauri)
@@ -32,7 +32,7 @@ export const FileExplorer: React.FC = () => {
         
         if (!projectPath) {
           // Fallback to localStorage
-          projectPath = localStorage.getItem('currentProjectPath');
+          projectPath = localStorage.getItem('currentProjectPath') || undefined;
           
           if (!projectPath) {
             // Use home directory as default

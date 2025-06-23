@@ -1,7 +1,7 @@
 import React, { useCallback } from 'react';
 import { Terminal as TerminalComponent } from './Terminal';
 import { TerminalTabs } from './TerminalTabs';
-import type { Terminal as TerminalType, TerminalTheme } from '@code-pilot/types';
+import type { Terminal as TerminalType, TerminalTheme } from '../types';
 
 interface TerminalPanelProps {
   terminals: TerminalType[];

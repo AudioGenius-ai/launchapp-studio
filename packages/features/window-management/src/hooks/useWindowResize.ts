@@ -16,8 +16,8 @@ export function useWindowResize({
   onMove,
   debounceMs = 100,
 }: UseWindowResizeOptions = {}) {
-  const resizeTimeoutRef = useRef<NodeJS.Timeout>();
-  const moveTimeoutRef = useRef<NodeJS.Timeout>();
+  const resizeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const moveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   
   const setSize = useCallback(async (size: WindowSize) => {
     try {
@@ -55,7 +55,7 @@ export function useWindowResize({
     const setupListeners = async () => {
       const window = windowId 
         ? await windowService.getWindow(windowId)
-        : await getCurrentWindow();
+        : getCurrentWindow();
       
       if (!window) return;
       

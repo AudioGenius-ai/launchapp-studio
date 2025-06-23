@@ -1,0 +1,12 @@
+{
+  "$schema": "https://raw.githubusercontent.com/modelcontextprotocol/servers/main/src/shared/mcp_config_schema.json",
+  "mcpServers": {
+    "project-management": {
+      "command": "./apps/desktop/src-tauri/binaries/mcp-server/target/debug/launchapp-mcp-sidecar",
+      "args": [],
+      "env": {
+        "LOG_LEVEL": "info"
+      }
+    }
+  }
+}

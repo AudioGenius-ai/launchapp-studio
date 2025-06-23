@@ -1,0 +1,30 @@
+{
+  "name": "@code-pilot/services",
+  "version": "1.0.0",
+  "description": "Core services for Code Pilot Studio",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist",
+    "src"
+  ],
+  "scripts": {
+    "build": "vite build && tsc --emitDeclarationOnly",
+    "dev": "tsc -b --watch",
+    "clean": "rm -rf dist",
+    "type-check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@tauri-apps/api": "^2.5.0",
+    "@tauri-apps/plugin-store": "^2.2.1"
+  },
+  "devDependencies": {
+    "@code-pilot/types": "workspace:*",
+    "typescript": "^5.8.3",
+    "vite": "^6.3.5"
+  },
+  "peerDependencies": {
+    "@code-pilot/types": "workspace:*"
+  }
+}

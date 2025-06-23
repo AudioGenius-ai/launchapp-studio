@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { CreateProjectDto, Project } from '@code-pilot/types';
-import { Button, Input, Label } from '@code-pilot/ui';
+import { Button, Input, Label } from '@code-pilot/ui-kit';
 import { Folder } from 'lucide-react';
 
 interface ProjectFormProps {

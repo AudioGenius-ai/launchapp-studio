@@ -1,6 +1,10 @@
 import React from 'react';
-import { GitFileChange } from '@code-pilot/types';
-import { Checkbox, Button, cn } from '@code-pilot/ui';
+import { GitFileChange } from '../types';
+import { clsx } from 'clsx';
+import { twMerge } from 'tailwind-merge';
+
+const cn = (...inputs: any[]) => twMerge(clsx(inputs));
+const Checkbox = ({ checked, onCheckedChange, ...props }: any) => <input type="checkbox" checked={checked} onChange={(e) => onCheckedChange?.(e.target.checked)} {...props} />;
 import { Plus, Minus, FileDiff } from 'lucide-react';
 
 export interface FileChangeItemProps {
@@ -24,33 +28,39 @@ export const FileChangeItem: React.FC<FileChangeItemProps> = ({
   actionIcon,
   actionTooltip,
 }) => {
-  const statusColors = {
-    added: 'text-green-600 dark:text-green-400',
-    modified: 'text-yellow-600 dark:text-yellow-400',
-    deleted: 'text-red-600 dark:text-red-400',
-    renamed: 'text-blue-600 dark:text-blue-400',
-    copied: 'text-purple-600 dark:text-purple-400',
-    unmerged: 'text-orange-600 dark:text-orange-400',
+  const statusColors: Record<string, string> = {
+    NEW: 'text-green-600 dark:text-green-400',
+    MODIFIED: 'text-yellow-600 dark:text-yellow-400',
+    DELETED: 'text-red-600 dark:text-red-400',
+    RENAMED: 'text-blue-600 dark:text-blue-400',
+    COPIED: 'text-purple-600 dark:text-purple-400',
+    UPDATED_BUT_UNMERGED: 'text-orange-600 dark:text-orange-400',
+    CURRENT: 'text-gray-600 dark:text-gray-400',
+    IGNORED: 'text-gray-500 dark:text-gray-500',
+    UNTRACKED: 'text-gray-500 dark:text-gray-500',
   };
 
-  const statusLabels = {
-    added: 'A',
-    modified: 'M',
-    deleted: 'D',
-    renamed: 'R',
-    copied: 'C',
-    unmerged: 'U',
+  const statusLabels: Record<string, string> = {
+    NEW: 'A',
+    MODIFIED: 'M',
+    DELETED: 'D',
+    RENAMED: 'R',
+    COPIED: 'C',
+    UPDATED_BUT_UNMERGED: 'U',
+    CURRENT: '-',
+    IGNORED: 'I',
+    UNTRACKED: '?',
   };
 
   return (
     <div className="flex items-center gap-2 px-3 py-1 hover:bg-muted/50 group">
       <Checkbox
         checked={selected}
-        onCheckedChange={(checked) => onSelect(checked as boolean)}
+        onCheckedChange={(checked: boolean) => onSelect(checked)}
       />
       
-      <span className={cn("text-xs font-bold w-4", statusColors[file.status])}>
-        {statusLabels[file.status]}
+      <span className={cn("text-xs font-bold w-4", statusColors[file.status] || 'text-gray-500')}>
+        {statusLabels[file.status] || '?'}
       </span>
       
       <div className="flex-1 min-w-0">
@@ -69,29 +79,25 @@ export const FileChangeItem: React.FC<FileChangeItemProps> = ({
       </div>
       
       <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-        <Button
-          size="sm"
-          variant="ghost"
+        <button
           onClick={onOpenDiff}
           title="View diff"
-          className="h-6 w-6 p-0"
+          className="h-6 w-6 p-0 hover:bg-gray-100 dark:hover:bg-gray-800 rounded"
         >
           <FileDiff className="h-3 w-3" />
-        </Button>
+        </button>
         
-        <Button
-          size="sm"
-          variant="ghost"
+        <button
           onClick={onAction}
           title={actionTooltip}
-          className="h-6 w-6 p-0"
+          className="h-6 w-6 p-0 hover:bg-gray-100 dark:hover:bg-gray-800 rounded"
         >
           {actionIcon === 'plus' ? (
             <Plus className="h-3 w-3" />
           ) : (
             <Minus className="h-3 w-3" />
           )}
-        </Button>
+        </button>
       </div>
     </div>
   );

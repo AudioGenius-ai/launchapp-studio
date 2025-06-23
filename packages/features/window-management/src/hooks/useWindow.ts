@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useState } from 'react';
-import { getCurrentWindow, WebviewWindow } from '@tauri-apps/api/window';
+import { getCurrentWindow } from '@tauri-apps/api/window';
+import { WebviewWindow } from '@tauri-apps/api/webviewWindow';
 import { windowService } from '../services/windowService';
 import { useWindowStore } from '../stores/windowStore';
-import type { WindowState, WindowConfig } from '../types';
 
 export function useWindow(windowId?: string) {
   const [window, setWindow] = useState<WebviewWindow | null>(null);
@@ -20,7 +20,7 @@ export function useWindow(windowId?: string) {
         setIsLoading(true);
         const win = windowId 
           ? await windowService.getWindow(windowId)
-          : await getCurrentWindow();
+          : getCurrentWindow() as any as WebviewWindow;
         setWindow(win);
         setError(null);
       } catch (err) {

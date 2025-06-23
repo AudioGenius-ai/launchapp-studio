@@ -1,13 +1,43 @@
 // Example of using the Claude plugin from the frontend
 
-import {
-  createSession,
-  sendInput,
-  getMessages,
-  stopSession,
-  onSessionEvent,
-  type ClaudeMessage,
-} from '@code-pilot/plugin-claude';
+// Example imports from a hypothetical plugin
+// In real usage, these would come from the actual plugin package
+interface ClaudeMessage {
+  type: 'user' | 'assistant';
+  message?: {
+    content: Array<{ type: string; text?: string }>;
+    stopReason?: string;
+  };
+}
+
+// Example functions (these would be imported from the actual plugin)
+const createSession = async (options: { workspacePath: string; prompt: string }) => {
+  // This would be implemented by the plugin
+  return { id: 'session-id', ...options };
+};
+
+const sendInput = async (options: { sessionId: string; input: string }) => {
+  // Plugin implementation
+};
+
+const getMessages = async (sessionId: string): Promise<ClaudeMessage[]> => {
+  // Plugin implementation
+  return [];
+};
+
+const stopSession = async (sessionId: string) => {
+  // Plugin implementation
+};
+
+interface SessionEvent {
+  eventType: 'messagesUpdated' | 'statusChanged' | 'sessionStopped' | 'error';
+  data: any;
+}
+
+const onSessionEvent = (callback: (event: SessionEvent) => void) => {
+  // Plugin implementation
+  return () => {}; // unlisten function
+};
 
 // Example: Create a new Claude session
 export async function startClaudeSession(workspacePath: string) {
